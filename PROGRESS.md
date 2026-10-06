@@ -11,7 +11,12 @@ Gate status:
 - [x] `pytest` passes (contracts, diagnosis accept/reject, config, logging, interfaces, migration vs models, migration up/down, `/health`).
 - [x] `ruff check` clean.
 - [x] Schemas validate with unit tests, including diagnosis accept/reject cases.
-- [ ] **`docker compose up` brings up api + db: NOT VERIFIED, explicitly WAIVED by the project owner on 2026-10-06** so Phase 1 could start (D17). Phase 1 does not use Docker or Postgres. Still to do on a machine with Docker: `docker compose up --build`, then `curl localhost:8000/health`, then tick this box.
+- [x] `docker compose up --build` brings up api + db (verified 2026-10-06, Windows 11, Docker Desktop 4.93.0 / Engine 29.8.1, Compose v5.5.1; it had been waived under D17 until then):
+  - `GET /health` -> 200 `{"status":"ok","database":"ok"}`; stopping `db` -> 503, restarting -> 200.
+  - `alembic upgrade head` ran on PostgreSQL 16: 10 tables + `alembic_version` = `0001`; extension `vector` 0.8.7 installed.
+  - Postgres schema vs SQLAlchemy models: `compare_metadata` diff is empty.
+  - Frontend placeholder served on http://localhost:3000.
+  - Inside the api container (Python 3.11.17, Linux): 79 tests pass; the 2 IaC-template tests error only because the image does not include `infra/` (by design).
 
 ## Phase 1: Scenario generator, offline dataset, replay collector — implemented, gate PASSED
 
@@ -37,7 +42,7 @@ Gate status:
 Known limits (all data is smoke-test / synthetic):
 - The simulator, ground truth and later rules share one author's assumptions about how faults look (circularity risk; see BRIEF analysis). Real captures via the test stack are the mitigation.
 - No scenario uses the `other` label.
-- Byte-identity is verified on one machine; cross-OS identity is not yet checked (D22).
+- Byte-identity is verified across OSes: seed 42 gives the same `content_sha256` on Windows/Python 3.12 and Linux/Python 3.11 (D22).
 - Fault-injection tool and CloudFormation template are untested against AWS.
 
 ## Next: Phase 2 (real AWS collectors)

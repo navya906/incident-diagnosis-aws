@@ -5,7 +5,7 @@ telemetry, reasoning over AWS dependencies, retrieving similar past incidents, a
 structured, evidence-cited root-cause diagnosis, then measuring honestly whether each component helps.
 
 > Read `BRIEF.md` (the spec), `PROGRESS.md` (where we are) and `DECISIONS.md` (why things are the way
-> they are) **before** you touch anything. Current status: **Phase 1 done** (Phase 0 Docker gate waived, still to verify).
+> they are) **before** you touch anything. Current status: **Phases 0 and 1 done**, gates passed.
 
 ## 1. Requirements
 
@@ -128,7 +128,11 @@ The project is built phase by phase (see `BRIEF.md`). To let several people cont
 
 See `CONTRIBUTING.md` for the detailed checklist.
 
-## 7. Known gaps
+## 7. Troubleshooting
 
-- `docker compose up` has not yet been verified (Docker was unavailable on the first dev machine).
-  Whoever has Docker first should verify and tick the box in `PROGRESS.md`.
+- `docker: command not found`: Docker Desktop may be installed per-user. Add
+  `%LOCALAPPDATA%\Programs\DockerDesktop\resources\bin` to PATH, or open a new terminal after install.
+- Docker Desktop never reaches "Engine running" and its log says `Access is denied` on
+  `~\.docker\config.json`: in an **administrator** PowerShell run
+  `icacls "$env:USERPROFILE\.docker" /grant "${env:USERNAME}:(OI)(CI)F" /T`, then restart Docker Desktop.
+- Stop the stack with `docker compose down` (add `-v` to also delete the database volume).

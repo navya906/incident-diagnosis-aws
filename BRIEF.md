@@ -157,7 +157,7 @@ RQ6 experiments: sweep K ∈ {5, 10, 20, 40}, time window ∈ {5, 15, 30, 60 min
 
 | Phase | Status |
 |---|---|
-| 0 Foundations and contracts | Implemented. `docker compose up` gate item WAIVED by the owner (D17), still to be verified. |
+| 0 Foundations and contracts | Implemented, gate passed (Docker verified 2026-10-06, D29). |
 | 1 Scenario generator, dataset, replay | Implemented, gate passed (124 synthetic cases, byte-identical regeneration). Test stack + fault injection written, not run. |
 | 2 to 10 | Not started. |
 
