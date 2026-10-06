@@ -24,10 +24,11 @@ class MetricSpec:
     count: bool = False  # CloudWatch Sum: scales with the metric period
     integer: bool = False
     unit: str = ""
+    statistic: str | None = None  # overrides the Sum/Average default (matches AWS conventions)
 
     @property
     def stat(self) -> str:
-        return "Sum" if self.count else "Average"
+        return self.statistic or ("Sum" if self.count else "Average")
 
 
 def _alb() -> list[MetricSpec]:
@@ -69,7 +70,7 @@ def _lambda(role: str, invocations: float) -> list[MetricSpec]:
         MetricSpec(role, ns, "Errors", 1, 1, count=True, integer=True),
         MetricSpec(role, ns, "Duration", 220, 25, lo=1, unit="Milliseconds"),
         MetricSpec(role, ns, "Throttles", 0, 0.2, count=True, integer=True),
-        MetricSpec(role, ns, "ConcurrentExecutions", 40, 4, integer=True),
+        MetricSpec(role, ns, "ConcurrentExecutions", 40, 4, integer=True, statistic="Maximum"),
     ]
 
 
@@ -77,7 +78,7 @@ def _ec2(role: str) -> list[MetricSpec]:
     ns = "AWS/EC2"
     return [
         MetricSpec(role, ns, "CPUUtilization", 30, 4, hi=100, unit="Percent"),
-        MetricSpec(role, ns, "StatusCheckFailed", 0, 0, integer=True),
+        MetricSpec(role, ns, "StatusCheckFailed", 0, 0, integer=True, statistic="Maximum"),
     ]
 
 
@@ -85,7 +86,9 @@ def _sqs() -> list[MetricSpec]:
     ns = "AWS/SQS"
     return [
         MetricSpec("queue", ns, "ApproximateNumberOfMessagesVisible", 20, 8, integer=True),
-        MetricSpec("queue", ns, "ApproximateAgeOfOldestMessage", 5, 2, unit="Seconds"),
+        MetricSpec(
+            "queue", ns, "ApproximateAgeOfOldestMessage", 5, 2, unit="Seconds", statistic="Maximum"
+        ),
         MetricSpec("queue", ns, "NumberOfMessagesSent", 600, 40, count=True, integer=True),
         MetricSpec("queue", ns, "NumberOfMessagesDeleted", 600, 40, count=True, integer=True),
     ]

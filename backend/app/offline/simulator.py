@@ -29,7 +29,7 @@ from app.offline.models import (
 )
 from app.offline.topology import ACCOUNT_ID, REGION, MetricSpec, Topology, build_topology
 
-GENERATOR_VERSION = "1.0.0"
+GENERATOR_VERSION = "1.1.0"
 BASE_TIME = datetime(2025, 3, 1, tzinfo=UTC)
 PRE_ONSET = timedelta(minutes=60)
 POST_ONSET = timedelta(minutes=30)

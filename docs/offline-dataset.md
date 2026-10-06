@@ -11,8 +11,9 @@ python -m app.offline.generate --seed 7 --out ../data/generated/seed7
 ```
 
 Generated data is git-ignored. It is reproducible: the same seed and generator version give
-byte-identical files. Reference value (seed 42, generator 1.0.0, Windows, Python 3.12):
-`content_sha256 = 4460094203ebe52f5817716ffbaca3daf9882827cfcf393def19e1a5994eb0a0`.
+byte-identical files. Reference value (seed 42, generator 1.1.0):
+`content_sha256 = 06cec245b951be8e9b08524367439b5ee3d37fa75d6551d3bb8e2922d8388f8b`.
+(Generator 1.0.0 gave `4460094203eb...`, identical on Windows/Python 3.12 and Linux/Python 3.11, D30.)
 If you get a different hash on another OS, record it in DECISIONS.md (see D22).
 
 ## Composition (seed 42)

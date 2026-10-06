@@ -5,7 +5,7 @@ telemetry, reasoning over AWS dependencies, retrieving similar past incidents, a
 structured, evidence-cited root-cause diagnosis, then measuring honestly whether each component helps.
 
 > Read `BRIEF.md` (the spec), `PROGRESS.md` (where we are) and `DECISIONS.md` (why things are the way
-> they are) **before** you touch anything. Current status: **Phases 0 and 1 done**, gates passed.
+> they are) **before** you touch anything. Current status: **Phases 0 to 2 done**, gates passed.
 
 ## 1. Requirements
 
@@ -20,7 +20,7 @@ structured, evidence-cited root-cause diagnosis, then measuring honestly whether
 
 Python libraries are declared in `backend/pyproject.toml` (single source of truth):
 FastAPI, Uvicorn, Pydantic v2 + pydantic-settings, SQLAlchemy 2, Alembic, psycopg 3, NumPy, pandas,
-scikit-learn, NetworkX, PyYAML. Dev extra: pytest, httpx, ruff. `aws` extra (Phase 2+): boto3, moto.
+scikit-learn, NetworkX, PyYAML. Dev extra: pytest, httpx, ruff. `aws` extra: boto3, moto (needed for the Phase 2 tests).
 PyYAML is also used by tests to parse the CloudFormation template.
 Planned later: SentenceTransformers, FAISS, pgvector client (Phases 5+).
 
@@ -34,7 +34,7 @@ cd backend
 py -3.11 -m venv .venv        # or: python -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-pip install -e ".[dev]"
+pip install -e ".[dev,aws]"
 ```
 
 **macOS / Linux**
@@ -43,7 +43,7 @@ cd backend
 python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-pip install -e ".[dev]"
+pip install -e ".[dev,aws]"
 ```
 
 Or run the helper, which does the same: `scripts/setup.ps1` (Windows) or `scripts/setup.sh` (macOS/Linux).
@@ -61,6 +61,7 @@ Run from `backend/` with the venv active.
 | Auto-fix lint/imports | `ruff check . --fix` |
 | Format code | `ruff format .` (CI runs `ruff format --check .`) |
 | Generate synthetic dataset | `python -m app.offline.generate` (writes `data/generated/synthetic-v1`, git-ignored) |
+| Capture a real incident (read-only AWS) | `python -m app.collectors.capture --seed-arn <arn> --start ... --end ... --title ... --description ... --out ../data/captured` (see `docs/aws-setup.md`) |
 | Fault-injection plan (dry run) | `python -m app.offline.fault_injection --stack <name> --fault <fault>` |
 | Run API locally (needs a DB, or SQLite URL) | `uvicorn app.main:app --reload` |
 | Apply migrations | `alembic upgrade head` |
@@ -100,9 +101,11 @@ backend/
     db/           SQLAlchemy models + session
     offline/      Phase 1: topologies, fault signatures, simulator, dataset, ReplayCollector,
                   fault-injection tool
+    collectors/   Phase 2: boto3 collectors (metrics, logs, CloudTrail, Config), inventory
+                  discovery, capture CLI
     baselines/ ai/ evaluation/   filled in by later phases
 frontend/                              placeholder until Phase 9
-infra/                                 real test stack (CloudFormation) + how to inject faults
+infra/                                 real test stack, fault injection, read-only IAM policy
 docs/                                  architecture, dataset docs, runbooks (grow per phase)
 ```
 

@@ -8,6 +8,6 @@ if (-not (Test-Path ".venv")) {
     if (-not (Test-Path ".venv")) { python -m venv .venv }
 }
 & .\.venv\Scripts\python.exe -m pip install --upgrade pip
-& .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+& .\.venv\Scripts\python.exe -m pip install -e ".[dev,aws]"
 & .\.venv\Scripts\python.exe -m pytest -q
 Write-Host "`nDone. Activate with: backend\.venv\Scripts\Activate.ps1"

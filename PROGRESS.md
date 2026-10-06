@@ -45,8 +45,36 @@ Known limits (all data is smoke-test / synthetic):
 - Byte-identity is verified across OSes: seed 42 gives the same `content_sha256` on Windows/Python 3.12 and Linux/Python 3.11 (D22).
 - Fault-injection tool and CloudFormation template are untested against AWS.
 
-## Next: Phase 2 (real AWS collectors)
-Install the `aws` extra (`pip install -e ".[dev,aws]"`). Build boto3 collectors and a contract test proving they emit schema-identical CanonicalEvents to `ReplayCollector`.
+## Phase 2: Real AWS collectors — implemented, gate PASSED
+
+Branch: `phase2/aws-collectors` (based on `phase1/scenario-generator`). Details: `docs/aws-setup.md`.
+
+Built (`backend/app/collectors/`):
+- `cloudwatch_metrics.py`: batched `GetMetricData` (500 queries/call, paginated), period chosen from data age, per-target-group ALB metrics summed; metric catalog uses the same names/namespaces/stats/units as the simulator.
+- `cloudwatch_logs.py`: `FilterLogEvents` on the resources' own log groups, filter pattern, per-group cap, severity inference, secret scrubbing and truncation.
+- `cloudtrail.py`: `LookupEvents` with a 2 req/s token bucket, one lookup per resource name, EventId de-duplication, read-only events skipped by default, ingestion-lag warning, sanitized request parameters.
+- `config_history.py`: `GetResourceConfigHistory`, optional; skipped with a warning when there is no recorder or the resource is not recorded.
+- `inventory.py`: discovery from seed ARNs (ALB, target groups, ECS, Lambda, EC2, RDS, SQS, SGs, IAM roles) producing the same resource/relationship records as the dataset.
+- `aws_collector.py`: composite `AwsCollector` (implements `Collector`), on-disk event cache, `required_iam_actions()`.
+- `capture.py`: CLI to capture a real incident into the offline observable format.
+- `aws_common.py`: clients with adaptive retries, throttling backoff with jitter, rate limiter, pagination, `sanitize`.
+- Contract: per-source metadata schema, canonical resource-id format and `contract_violations()` added to `app/contracts/events.py` (D31).
+- `infra/iam/collector-readonly-policy.json` (20 read-only actions) and `docs/aws-setup.md`.
+
+Gate status:
+- [x] moto-based tests pass (inventory, metrics, logs, Config not-discovered path); botocore Stubber covers CloudTrail `LookupEvents` (not implemented in moto) and Config history items / no-recorder.
+- [x] Contract test: real collectors and `ReplayCollector` both emit `CanonicalEvent`s with zero `contract_violations` for metrics, logs, CloudTrail and Config; simulator metric catalog equals the real catalog (namespace, name, stat, unit).
+- [x] No credentials in source (repository scan test); IAM policy covers every called action and contains no write actions.
+- [x] `pytest` 119 passed; `ruff check` and `ruff format --check` clean.
+
+Known limits:
+- Not run against a real AWS account yet (needs the user's sandbox account; see `docs/aws-setup.md`).
+- `connects_to` edges are inferred from security-group rules; SQS producers are not discovered.
+- ECS service ids can collide across clusters (D36).
+- Simulator generator bumped to 1.1.0 for stat parity; dataset content hash changed (D35).
+
+## Next: Phase 3 (anomaly detection)
+z-score, MAD, moving average, rolling std, Isolation Forest; compare on the dev split using the injected-fault windows (`anomaly_labels` in the truth files).
 
 ## Team hand-off
 Setup, commands and working rules are in `README.md` and `CONTRIBUTING.md`. CI runs ruff (lint + format check) and pytest on every PR. Branch naming: `phaseN/<topic>`.
