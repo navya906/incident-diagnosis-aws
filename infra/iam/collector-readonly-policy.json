@@ -1,0 +1,32 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "IncidentDiagnosisReadOnlyCollectors",
+      "Effect": "Allow",
+      "Action": [
+        "cloudtrail:LookupEvents",
+        "cloudwatch:GetMetricData",
+        "config:GetResourceConfigHistory",
+        "ec2:DescribeInstances",
+        "ec2:DescribeSecurityGroups",
+        "ecs:DescribeServices",
+        "ecs:DescribeTaskDefinition",
+        "ecs:ListClusters",
+        "ecs:ListServices",
+        "elasticloadbalancing:DescribeLoadBalancers",
+        "elasticloadbalancing:DescribeTargetGroups",
+        "elasticloadbalancing:DescribeTargetHealth",
+        "iam:GetInstanceProfile",
+        "iam:GetRole",
+        "lambda:GetFunctionConfiguration",
+        "lambda:ListEventSourceMappings",
+        "logs:FilterLogEvents",
+        "rds:DescribeDBInstances",
+        "sqs:GetQueueUrl",
+        "sts:GetCallerIdentity"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

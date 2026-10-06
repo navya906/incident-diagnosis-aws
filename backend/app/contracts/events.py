@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
@@ -107,3 +108,91 @@ class CanonicalEvent(BaseModel):
             metadata=metadata or {},
             raw_ref=raw_ref,
         )
+
+
+# ----------------------------------------------------------------------------------------------
+# Per-source schema. Every collector (real or replay) must satisfy these; checked by
+# `contract_violations` in tests (DECISIONS D31).
+
+#: Canonical resource ids, shared by real collectors, inventory discovery and the simulator.
+CANONICAL_RESOURCE_ID = re.compile(
+    r"^(alb|tg|ecs/service|rds|lambda/function|ec2/instance|sqs/queue|sg|iam/role|s3/bucket)"
+    r"/[A-Za-z0-9._+=@-]+$"
+)
+
+
+class SourceSchema(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    required_metadata: frozenset[str]
+    optional_metadata: frozenset[str] = frozenset()
+    raw_ref_prefix: str
+    fixed_event_type: str | None = None  # None: free-form (e.g. the CloudTrail eventName)
+    has_metric_value: bool = False
+
+
+SOURCE_SCHEMAS: dict[EventSource, SourceSchema] = {
+    EventSource.CLOUDWATCH_METRIC: SourceSchema(
+        required_metadata=frozenset({"namespace", "stat", "period_seconds", "unit"}),
+        raw_ref_prefix="cw:",
+        fixed_event_type="metric_datapoint",
+        has_metric_value=True,
+    ),
+    EventSource.CLOUDWATCH_LOG: SourceSchema(
+        required_metadata=frozenset({"log_group", "log_stream"}),
+        raw_ref_prefix="cwlogs:",
+        fixed_event_type="log_line",
+    ),
+    EventSource.CLOUDTRAIL: SourceSchema(
+        required_metadata=frozenset({"eventSource", "awsRegion", "userIdentity"}),
+        optional_metadata=frozenset({"errorCode", "requestParameters", "readOnly"}),
+        raw_ref_prefix="ct:",
+    ),
+    EventSource.AWS_CONFIG: SourceSchema(
+        required_metadata=frozenset({"resourceType", "configurationItemStatus"}),
+        optional_metadata=frozenset({"configurationStateId"}),
+        raw_ref_prefix="cfg:",
+        fixed_event_type="ConfigurationItemChange",
+    ),
+    EventSource.ALARM: SourceSchema(
+        required_metadata=frozenset({"alarm_name", "state", "previous_state", "threshold"}),
+        raw_ref_prefix="alarm:",
+        fixed_event_type="alarm_state_change",
+        has_metric_value=True,
+    ),
+}
+
+
+def contract_violations(event: CanonicalEvent) -> list[str]:
+    """Return every way `event` deviates from the per-source schema (empty list = valid)."""
+    schema = SOURCE_SCHEMAS[event.source]
+    problems: list[str] = []
+    keys = set(event.metadata)
+    missing = schema.required_metadata - keys
+    extra = keys - schema.required_metadata - schema.optional_metadata
+    if missing:
+        problems.append(f"missing metadata {sorted(missing)}")
+    if extra:
+        problems.append(f"unexpected metadata {sorted(extra)}")
+    if not (event.raw_ref or "").startswith(schema.raw_ref_prefix):
+        problems.append(f"raw_ref must start with {schema.raw_ref_prefix!r}")
+    if schema.fixed_event_type and event.event_type != schema.fixed_event_type:
+        problems.append(f"event_type must be {schema.fixed_event_type!r}")
+    if schema.has_metric_value and (event.metric is None or event.value is None):
+        problems.append("metric and value are required")
+    if not schema.has_metric_value and event.metric is not None:
+        problems.append("metric must be None for this source")
+    if not CANONICAL_RESOURCE_ID.match(event.resource_id):
+        problems.append(f"non-canonical resource_id {event.resource_id!r}")
+    expected_id = make_event_id(
+        timestamp=event.timestamp,
+        source=event.source.value,
+        service=event.service,
+        resource_id=event.resource_id,
+        event_type=event.event_type,
+        metric=event.metric,
+        raw_ref=event.raw_ref,
+    )
+    if event.event_id != expected_id:
+        problems.append("event_id does not match make_event_id(...)")
+    return problems

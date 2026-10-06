@@ -8,7 +8,9 @@ import re
 import sys
 
 _SECRET_PATTERNS = [
-    re.compile(r"(?i)(api[_-]?key|secret|token|password|authorization)(['\"]?\s*[:=]\s*['\"]?)([^\s'\",}]+)"),
+    re.compile(
+        r"(?i)(api[_-]?key|secret|token|password|authorization)(['\"]?\s*[:=]\s*['\"]?)([^\s'\",}]+)"
+    ),
     re.compile(r"AKIA[0-9A-Z]{16}"),
 ]
 

@@ -5,7 +5,7 @@ telemetry, reasoning over AWS dependencies, retrieving similar past incidents, a
 structured, evidence-cited root-cause diagnosis, then measuring honestly whether each component helps.
 
 > Read `BRIEF.md` (the spec), `PROGRESS.md` (where we are) and `DECISIONS.md` (why things are the way
-> they are) **before** you touch anything. Current status: **Phase 0 done** (Docker gate unverified).
+> they are) **before** you touch anything. Current status: **Phases 0 to 2 done**, gates passed.
 
 ## 1. Requirements
 
@@ -20,7 +20,8 @@ structured, evidence-cited root-cause diagnosis, then measuring honestly whether
 
 Python libraries are declared in `backend/pyproject.toml` (single source of truth):
 FastAPI, Uvicorn, Pydantic v2 + pydantic-settings, SQLAlchemy 2, Alembic, psycopg 3, NumPy, pandas,
-scikit-learn, NetworkX, PyYAML. Dev extra: pytest, httpx, ruff. `aws` extra (Phase 2+): boto3, moto.
+scikit-learn, NetworkX, PyYAML. Dev extra: pytest, httpx, ruff. `aws` extra: boto3, moto (needed for the Phase 2 tests).
+PyYAML is also used by tests to parse the CloudFormation template.
 Planned later: SentenceTransformers, FAISS, pgvector client (Phases 5+).
 
 ## 2. Setup (virtual environment)
@@ -33,7 +34,7 @@ cd backend
 py -3.11 -m venv .venv        # or: python -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-pip install -e ".[dev]"
+pip install -e ".[dev,aws]"
 ```
 
 **macOS / Linux**
@@ -42,7 +43,7 @@ cd backend
 python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-pip install -e ".[dev]"
+pip install -e ".[dev,aws]"
 ```
 
 Or run the helper, which does the same: `scripts/setup.ps1` (Windows) or `scripts/setup.sh` (macOS/Linux).
@@ -58,6 +59,10 @@ Run from `backend/` with the venv active.
 | Run tests | `pytest -q` |
 | Lint | `ruff check .` |
 | Auto-fix lint/imports | `ruff check . --fix` |
+| Format code | `ruff format .` (CI runs `ruff format --check .`) |
+| Generate synthetic dataset | `python -m app.offline.generate` (writes `data/generated/synthetic-v1`, git-ignored) |
+| Capture a real incident (read-only AWS) | `python -m app.collectors.capture --seed-arn <arn> --start ... --end ... --title ... --description ... --out ../data/captured` (see `docs/aws-setup.md`) |
+| Fault-injection plan (dry run) | `python -m app.offline.fault_injection --stack <name> --fault <fault>` |
 | Run API locally (needs a DB, or SQLite URL) | `uvicorn app.main:app --reload` |
 | Apply migrations | `alembic upgrade head` |
 | New migration after model change | `alembic revision --autogenerate -m "describe change"` |
@@ -94,9 +99,14 @@ backend/
     contracts/    CanonicalEvent, taxonomy, GroundTruth, Diagnosis, evidence (never change silently)
     interfaces/   Collector, Detector, GraphStore, VectorStore, LLMClient, Embedder
     db/           SQLAlchemy models + session
-    offline/ baselines/ ai/ evaluation/   filled in by later phases
+    offline/      Phase 1: topologies, fault signatures, simulator, dataset, ReplayCollector,
+                  fault-injection tool
+    collectors/   Phase 2: boto3 collectors (metrics, logs, CloudTrail, Config), inventory
+                  discovery, capture CLI
+    baselines/ ai/ evaluation/   filled in by later phases
 frontend/                              placeholder until Phase 9
-docs/                                  architecture, runbooks (grow per phase)
+infra/                                 real test stack, fault injection, read-only IAM policy
+docs/                                  architecture, dataset docs, runbooks (grow per phase)
 ```
 
 ## 6. Working as a team (hand-off rules)
@@ -121,7 +131,11 @@ The project is built phase by phase (see `BRIEF.md`). To let several people cont
 
 See `CONTRIBUTING.md` for the detailed checklist.
 
-## 7. Known gaps
+## 7. Troubleshooting
 
-- `docker compose up` has not yet been verified (Docker was unavailable on the first dev machine).
-  Whoever has Docker first should verify and tick the box in `PROGRESS.md`.
+- `docker: command not found`: Docker Desktop may be installed per-user. Add
+  `%LOCALAPPDATA%\Programs\DockerDesktop\resources\bin` to PATH, or open a new terminal after install.
+- Docker Desktop never reaches "Engine running" and its log says `Access is denied` on
+  `~\.docker\config.json`: in an **administrator** PowerShell run
+  `icacls "$env:USERPROFILE\.docker" /grant "${env:USERNAME}:(OI)(CI)F" /T`, then restart Docker Desktop.
+- Stop the stack with `docker compose down` (add `-v` to also delete the database volume).

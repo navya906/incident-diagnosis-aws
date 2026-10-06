@@ -3,7 +3,7 @@
 ## Phase / gate affected
 
 ## Checklist
-- [ ] `ruff check .` and `pytest -q` pass
+- [ ] `ruff check .`, `ruff format --check .` and `pytest -q` pass
 - [ ] `PROGRESS.md` updated
 - [ ] `DECISIONS.md` updated for non-obvious choices
 - [ ] Contracts/interfaces unchanged, or change justified in DECISIONS.md

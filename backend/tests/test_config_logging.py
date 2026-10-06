@@ -30,8 +30,8 @@ def test_api_key_not_exposed_in_repr(monkeypatch):
 
 
 def test_scrub_removes_secrets():
-    out = scrub("login api_key=abc123 token: xyz AKIAABCDEFGHIJKLMNOP")
-    assert "abc123" not in out and "xyz" not in out and "AKIAABCDEFGHIJKLMNOP" not in out
+    out = scrub("login api_key=abc123 token: xyz AKIAIOSFODNN7EXAMPLE")
+    assert "abc123" not in out and "xyz" not in out and "AKIAIOSFODNN7EXAMPLE" not in out
 
 
 def test_log_filter_scrubs_records():

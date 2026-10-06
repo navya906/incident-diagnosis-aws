@@ -120,9 +120,7 @@ def test_historical_influence_consistency():
     with pytest.raises(ValidationError):
         Diagnosis.model_validate(make(historical_influence={"used": True, "incident_ids": []}))
     with pytest.raises(ValidationError):
-        Diagnosis.model_validate(
-            make(historical_influence={"used": False, "incident_ids": ["h1"]})
-        )
+        Diagnosis.model_validate(make(historical_influence={"used": False, "incident_ids": ["h1"]}))
 
 
 def test_missing_required_field_rejected():

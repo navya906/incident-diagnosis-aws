@@ -20,7 +20,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "httpx", "ruff"]
-aws = ["boto3", "moto[all]"]  # Phase 2 onward
+aws = ["boto3>=1.34", "moto[cloudwatch,logs,cloudtrail,config,ec2,ecs,rds,elbv2,awslambda,sqs,iam,sts]>=5"]
 
 [tool.setuptools.packages.find]
 include = ["app*"]

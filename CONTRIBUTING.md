@@ -16,7 +16,7 @@
 - Changing DB models: add an Alembic migration (`alembic revision --autogenerate`) and review it.
 
 ## Before opening a PR
-- [ ] `ruff check .` clean, `pytest -q` green
+- [ ] `ruff check .` and `ruff format --check .` clean, `pytest -q` green
 - [ ] `PROGRESS.md` updated (done / next / unverified)
 - [ ] `DECISIONS.md` updated for non-obvious choices
 - [ ] No secrets, `.env`, or generated data committed

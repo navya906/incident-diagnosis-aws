@@ -50,6 +50,27 @@ class EmbeddingSettings(BaseModel):
     model: str = "all-MiniLM-L6-v2"
 
 
+class AwsSettings(BaseModel):
+    """Real-collector settings. Credentials come from the standard AWS chain, never from here."""
+
+    region: str = "us-east-1"
+    profile: str | None = None
+    max_attempts: int = Field(default=10, ge=1)
+    metrics_period_seconds: int | None = None  # None: pick from data age (60/300/3600)
+    logs_max_events_per_group: int = Field(default=500, ge=1)
+    logs_filter_pattern: str | None = (
+        "?ERROR ?Error ?error ?FATAL ?Fatal ?Exception ?WARN ?Warn ?denied ?Denied "
+        "?timeout ?Timeout ?refused ?killed"
+    )
+    logs_max_message_chars: int = Field(default=2000, ge=100)
+    cloudtrail_requests_per_second: float = Field(default=2.0, gt=0)
+    cloudtrail_ingestion_lag_minutes: int = Field(default=15, ge=0)
+    cloudtrail_include_read_only: bool = False
+    config_enabled: bool = True
+    cache_dir: str | None = None
+    cache_ttl_seconds: int = Field(default=3600, ge=0)
+
+
 class ApiSettings(BaseModel):
     api_keys: list[SecretStr] = Field(default_factory=list)
 
@@ -68,6 +89,7 @@ class Settings(BaseSettings):
     redaction: RedactionSettings = Field(default_factory=RedactionSettings)
     llm: LLMSettings = Field(default_factory=LLMSettings)
     embeddings: EmbeddingSettings = Field(default_factory=EmbeddingSettings)
+    aws: AwsSettings = Field(default_factory=AwsSettings)
     api: ApiSettings = Field(default_factory=ApiSettings)
 
     @classmethod
