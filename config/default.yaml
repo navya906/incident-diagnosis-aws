@@ -32,6 +32,21 @@ embeddings:
   provider: sentence_transformers   # sentence_transformers | openai | gemini
   model: all-MiniLM-L6-v2
 
+anomaly:
+  # Statistical detectors only (no LLM). Windows are in minutes, so they adapt to 60 s or 300 s data.
+  methods: [zscore, mad, moving_average, rolling_std, isolation_forest]
+  baseline_minutes: 30             # trailing window used as the baseline for each point
+  min_history_points: 5            # fewer baseline points than this => the point is not scored
+  exclude_anomalies_from_baseline: true
+  floor_relative: 0.01             # spread floor = max(floor_relative * |median|, floor_absolute);
+                                   # only binds on near-flat series (e.g. a constant task count)
+  floor_absolute: 1.0e-6
+  zscore: {threshold: 3.0}
+  mad: {threshold: 3.5}
+  moving_average: {threshold: 0.5}
+  rolling_std: {threshold: 3.0, recent_points: 3}
+  isolation_forest: {threshold: 0.0, train_minutes: 30, min_train_points: 5, n_estimators: 100, random_state: 0}
+
 aws:
   # Credentials: standard AWS chain (env vars, ~/.aws profile, SSO, instance role). Never here.
   region: us-east-1
