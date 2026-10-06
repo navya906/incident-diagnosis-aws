@@ -19,7 +19,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "httpx", "ruff", "moto[all]"]
+dev = ["pytest>=8", "httpx", "ruff"]
+aws = ["boto3", "moto[all]"]  # Phase 2 onward
 
 [tool.setuptools.packages.find]
 include = ["app*"]

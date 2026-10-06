@@ -16,6 +16,9 @@ Gate status:
 ## Next: Phase 1 (scenario generator, offline dataset, replay collector)
 Do not start until the Docker gate item is confirmed (or explicitly waived).
 
+## Team hand-off
+Setup, commands and working rules are in `README.md` and `CONTRIBUTING.md`. CI runs ruff + pytest on every PR. Branch naming: `phaseN/<topic>`.
+
 ## How to run tests
 ```
 cd backend

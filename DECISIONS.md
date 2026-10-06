@@ -15,3 +15,6 @@
 | D11 | 0 | Contracts for `Anomaly`/`MetricSeries`, `ScoreWeights`/`EvidenceItem`, `CollectionRequest` were added beyond the brief's list because the interfaces need typed signatures. | Interfaces cannot be typed otherwise. |
 | D12 | 0 | The build brief is stored in the repo as `BRIEF.md`, with a status/amendments section appended at the end. | Keeps the spec next to the code it governs. |
 | D13 | 0 | Remote is `https://github.com/navya906/incident-diagnosis-aws.git`, default branch `main`. `.venv`, `.env`, caches and generated data are git-ignored. | Requested by the user. |
+| D14 | 0 | Single dependency source is `backend/pyproject.toml` (`pip install -e ".[dev]"`); no separate requirements.txt. `moto`/`boto3` moved to an `aws` extra, installed from Phase 2. | Avoids drift; keeps the dev install light. |
+| D15 | 0 | Venv lives at `backend/.venv`; `scripts/setup.ps1` / `setup.sh` create it and run the tests. | One predictable location for all contributors. |
+| D16 | 0 | Collaboration scaffolding added: README hand-off rules, CONTRIBUTING.md, PR template, GitHub Actions CI (ruff + pytest on Python 3.11), `.gitattributes`/`.editorconfig` (LF). | Lets several people continue work without context loss. |

@@ -165,3 +165,4 @@ Amendments made while building Phase 0 (details in DECISIONS.md):
 - Extra contracts were added so interfaces are typed: `MetricSeries`/`Anomaly`, `ScoreWeights`/`EvidenceItem`, `CollectionRequest`.
 - The pgvector embedding column is deferred from the first migration to Phase 5.
 - The low-confidence `requires_human_review` rule is the helper `needs_review(diagnosis, threshold)`, because the threshold is configuration.
+- Collaboration scaffolding (README, CONTRIBUTING, CI, PR template, setup scripts) was added; dependencies are declared only in `backend/pyproject.toml`.
