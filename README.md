@@ -5,7 +5,7 @@ telemetry, reasoning over AWS dependencies, retrieving similar past incidents, a
 structured, evidence-cited root-cause diagnosis, then measuring honestly whether each component helps.
 
 > Read `BRIEF.md` (the spec), `PROGRESS.md` (where we are) and `DECISIONS.md` (why things are the way
-> they are) **before** you touch anything. Current status: **Phase 0 done** (Docker gate unverified).
+> they are) **before** you touch anything. Current status: **Phase 1 done** (Phase 0 Docker gate waived, still to verify).
 
 ## 1. Requirements
 
@@ -21,6 +21,7 @@ structured, evidence-cited root-cause diagnosis, then measuring honestly whether
 Python libraries are declared in `backend/pyproject.toml` (single source of truth):
 FastAPI, Uvicorn, Pydantic v2 + pydantic-settings, SQLAlchemy 2, Alembic, psycopg 3, NumPy, pandas,
 scikit-learn, NetworkX, PyYAML. Dev extra: pytest, httpx, ruff. `aws` extra (Phase 2+): boto3, moto.
+PyYAML is also used by tests to parse the CloudFormation template.
 Planned later: SentenceTransformers, FAISS, pgvector client (Phases 5+).
 
 ## 2. Setup (virtual environment)
@@ -58,6 +59,9 @@ Run from `backend/` with the venv active.
 | Run tests | `pytest -q` |
 | Lint | `ruff check .` |
 | Auto-fix lint/imports | `ruff check . --fix` |
+| Format code | `ruff format .` (CI runs `ruff format --check .`) |
+| Generate synthetic dataset | `python -m app.offline.generate` (writes `data/generated/synthetic-v1`, git-ignored) |
+| Fault-injection plan (dry run) | `python -m app.offline.fault_injection --stack <name> --fault <fault>` |
 | Run API locally (needs a DB, or SQLite URL) | `uvicorn app.main:app --reload` |
 | Apply migrations | `alembic upgrade head` |
 | New migration after model change | `alembic revision --autogenerate -m "describe change"` |
@@ -94,9 +98,12 @@ backend/
     contracts/    CanonicalEvent, taxonomy, GroundTruth, Diagnosis, evidence (never change silently)
     interfaces/   Collector, Detector, GraphStore, VectorStore, LLMClient, Embedder
     db/           SQLAlchemy models + session
-    offline/ baselines/ ai/ evaluation/   filled in by later phases
+    offline/      Phase 1: topologies, fault signatures, simulator, dataset, ReplayCollector,
+                  fault-injection tool
+    baselines/ ai/ evaluation/   filled in by later phases
 frontend/                              placeholder until Phase 9
-docs/                                  architecture, runbooks (grow per phase)
+infra/                                 real test stack (CloudFormation) + how to inject faults
+docs/                                  architecture, dataset docs, runbooks (grow per phase)
 ```
 
 ## 6. Working as a team (hand-off rules)

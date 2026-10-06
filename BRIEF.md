@@ -157,12 +157,14 @@ RQ6 experiments: sweep K ∈ {5, 10, 20, 40}, time window ∈ {5, 15, 30, 60 min
 
 | Phase | Status |
 |---|---|
-| 0 Foundations and contracts | Implemented; 38 tests pass, ruff clean. `docker compose up` gate NOT yet verified (Docker not installed on the dev machine). |
-| 1 to 10 | Not started. |
+| 0 Foundations and contracts | Implemented. `docker compose up` gate item WAIVED by the owner (D17), still to be verified. |
+| 1 Scenario generator, dataset, replay | Implemented, gate passed (124 synthetic cases, byte-identical regeneration). Test stack + fault injection written, not run. |
+| 2 to 10 | Not started. |
 
-Amendments made while building Phase 0 (details in DECISIONS.md):
+Amendments (details in DECISIONS.md):
 - Python target is `>=3.11` (dev machine runs 3.12; Docker image uses 3.11).
 - Extra contracts were added so interfaces are typed: `MetricSeries`/`Anomaly`, `ScoreWeights`/`EvidenceItem`, `CollectionRequest`.
 - The pgvector embedding column is deferred from the first migration to Phase 5.
 - The low-confidence `requires_human_review` rule is the helper `needs_review(diagnosis, threshold)`, because the threshold is configuration.
 - Collaboration scaffolding (README, CONTRIBUTING, CI, PR template, setup scripts) was added; dependencies are declared only in `backend/pyproject.toml`.
+- Phase 1: dataset is 124 cases (D18); observable and truth files are separate (D19); insufficient-evidence cases are made by stripping telemetry from a real fault (D21); compound cases use the earlier fault as primary (D24).
