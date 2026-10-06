@@ -1,0 +1,36 @@
+# Default configuration. Override any key via env var CLOUDDIAG_<SECTION>__<KEY>,
+# e.g. CLOUDDIAG_DATABASE_URL, CLOUDDIAG_EVIDENCE__TOP_K=20.
+environment: development
+log_level: INFO
+log_json: false
+database_url: postgresql+psycopg://clouddiag:clouddiag@localhost:5432/clouddiag
+
+evidence:
+  top_k: 10
+  window_minutes: 30
+  weights:
+    temporal: 0.25
+    resource: 0.20
+    anomaly: 0.25
+    semantic: 0.15
+    dependency: 0.15
+
+diagnosis:
+  review_confidence_threshold: 0.6   # below this => requires_human_review
+  self_consistency_samples: 5
+
+redaction:
+  enabled: true   # applied before ANY external LLM call
+
+llm:
+  provider: stub            # stub (LOCAL-ONLY) | openai_compatible | gemini
+  model: stub-deterministic
+  base_url: null
+  # API keys come from env only (CLOUDDIAG_LLM__API_KEY); never put them in this file.
+
+embeddings:
+  provider: sentence_transformers   # sentence_transformers | openai | gemini
+  model: all-MiniLM-L6-v2
+
+api:
+  api_keys: []   # set via env CLOUDDIAG_API__API_KEYS (JSON list)

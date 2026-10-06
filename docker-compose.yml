@@ -1,0 +1,44 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: clouddiag
+      POSTGRES_PASSWORD: clouddiag
+      POSTGRES_DB: clouddiag
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clouddiag -d clouddiag"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      CLOUDDIAG_DATABASE_URL: postgresql+psycopg://clouddiag:clouddiag@db:5432/clouddiag
+      CLOUDDIAG_CONFIG_FILE: /srv/config/default.yaml
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  frontend:
+    image: nginx:alpine
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    ports:
+      - "3000:80"
+
+volumes:
+  pgdata:
