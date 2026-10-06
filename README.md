@@ -5,7 +5,7 @@ telemetry, reasoning over AWS dependencies, retrieving similar past incidents, a
 structured, evidence-cited root-cause diagnosis, then measuring honestly whether each component helps.
 
 > Read `BRIEF.md` (the spec), `PROGRESS.md` (where we are) and `DECISIONS.md` (why things are the way
-> they are) **before** you touch anything. Current status: **Phases 0 to 2 done**, gates passed.
+> they are) **before** you touch anything. Current status: **Phases 0 to 3 done**, gates passed.
 
 ## 1. Requirements
 
@@ -62,6 +62,7 @@ Run from `backend/` with the venv active.
 | Format code | `ruff format .` (CI runs `ruff format --check .`) |
 | Generate synthetic dataset | `python -m app.offline.generate` (writes `data/generated/synthetic-v1`, git-ignored) |
 | Capture a real incident (read-only AWS) | `python -m app.collectors.capture --seed-arn <arn> --start ... --end ... --title ... --description ... --out ../data/captured` (see `docs/aws-setup.md`) |
+| Compare anomaly detectors (dev split) | `python -m app.evaluation.anomaly_eval [--sweep]` (writes `docs/experiments/`) |
 | Fault-injection plan (dry run) | `python -m app.offline.fault_injection --stack <name> --fault <fault>` |
 | Run API locally (needs a DB, or SQLite URL) | `uvicorn app.main:app --reload` |
 | Apply migrations | `alembic upgrade head` |
@@ -103,10 +104,13 @@ backend/
                   fault-injection tool
     collectors/   Phase 2: boto3 collectors (metrics, logs, CloudTrail, Config), inventory
                   discovery, capture CLI
-    baselines/ ai/ evaluation/   filled in by later phases
+    anomaly/      Phase 3: statistical detectors (z-score, MAD, moving average, rolling std,
+                  Isolation Forest) and the service that runs them
+    evaluation/   experiment evaluation (Phase 3: detector comparison)
+    baselines/ ai/   filled in by later phases
 frontend/                              placeholder until Phase 9
 infra/                                 real test stack, fault injection, read-only IAM policy
-docs/                                  architecture, dataset docs, runbooks (grow per phase)
+docs/                                  dataset and AWS docs; docs/experiments/ holds generated results
 ```
 
 ## 6. Working as a team (hand-off rules)
