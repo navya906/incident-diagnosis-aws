@@ -166,7 +166,8 @@ RQ6 experiments: sweep K ∈ {5, 10, 20, 40}, time window ∈ {5, 15, 30, 60 min
 | 6 Diagnosis engine and severity | Implemented, gate passed (end-to-end on all dev incidents with the stub LLM; validator and severity tests). |
 | 7 Evaluation, baselines, ablations | Implemented, gate passed (full 25-condition matrix with the stub on dev, reproducible by experiment id; RUNBOOK for real-LLM test runs). |
 | 8 Backend API, lifecycle, security | Implemented, gate passed (API tests for all 22 routes, lifecycle and security tests; migration 0003 verified on PostgreSQL). |
-| 9 to 10 | Not started. |
+| 9 Frontend | Implemented, gate passed (typecheck + build, component tests, scripted end-to-end walk-through on offline data; Docker stack verified). |
+| 10 | Not started. |
 
 Amendments (details in DECISIONS.md):
 - Python target is `>=3.11` (dev machine runs 3.12; Docker image uses 3.11).
@@ -182,3 +183,4 @@ Amendments (details in DECISIONS.md):
 - Phase 6: no change to the Diagnosis schema; context/citation/severity models are new (D72-D77); `requires_human_review` is applied as a deterministic policy after validation rather than as a rejection reason (D74); the severity engine adds a latency factor to the brief's list (D76).
 - Phase 7: B2/B3 are context modes and A5 a ranking mode of the existing pipeline (D78, D83); B1 shares the stub's keyword table (D79); the matrix adds the D71 knowledge-base conditions; experiment ids include a hash of the application source so that the same id means the same code (D82); `HistoricalRecord.source` gains `distractor` for evaluation-only entries (D83). Added before committing: `Full-no-redaction` (D87), cluster bootstrap by fault type with pre-declared Holm-corrected primary comparisons (D85), case-type strata (D90), a verifier audit with injected faults (D89), a cheaper run plan (D86) and a judge different-family rule (D88).
 - Phase 8: the original spec's endpoint list is not in the repo, so endpoints were derived from the data model and frontend needs (D91); `cryptography` added for SNS signature verification (D95); migration 0003 (lifecycle, jobs, audit) (D98).
+- Phase 9: Recharts 3 instead of 2 (deprecated) and other stable majors pinned (D101); diagnosis responses gain `evidence_events` and `dependency_path`, plus `GET /api/offline/incidents` (D99); the API Docker image installs from pyproject (D105).

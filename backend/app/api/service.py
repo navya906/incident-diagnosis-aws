@@ -14,6 +14,7 @@ from app.api.alarms import Alarm, resources_from_dimensions
 from app.api.schemas import IncidentCreate
 from app.config import RedactionSettings, Settings
 from app.contracts.events import CanonicalEvent, EventSource, contract_violations
+from app.contracts.evidence import make_evidence_id
 from app.db.models import (
     AnomalyRecord,
     AwsResource,
@@ -550,7 +551,57 @@ def persist_result(session: Session, incident_id: str, result, investigation, ex
     return row.id
 
 
-def diagnosis_view(row: DiagnosisRecord) -> dict:
+def resolve_evidence(
+    session: Session, incident_id: str, evidence_ids: list[str], sf: SecretFilter
+) -> dict[str, dict]:
+    """Event behind each cited evidence id (ids that do not resolve are simply absent)."""
+    wanted = set(evidence_ids)
+    out = {}
+    for row in session.scalars(select(Event).where(Event.incident_id == incident_id)):
+        evd = make_evidence_id(incident_id, row.event_id)
+        if evd in wanted:
+            out[evd] = event_view(row, sf)
+    return out
+
+
+def dependency_path(session: Session, incident_id: str, resource_id: str | None) -> list[str]:
+    """How a failure of the root-cause resource reaches the alarmed resource (impact graph)."""
+    if not resource_id:
+        return []
+    inc, _, _, resources, relationships = load_case(session, incident_id)
+    g = build_graph(resources, relationships)
+    best: list[str] = []
+    for target in inc.affected_resources:
+        if resource_id == target:
+            return [resource_id]
+        if g.has_node(resource_id) and g.has_node(target):
+            p = g.impact_path(resource_id, target)
+            if p and (not best or len(p) < len(best)):
+                best = p
+    return best
+
+
+def diagnosis_view(
+    row: DiagnosisRecord, session: Session | None = None, sf: SecretFilter | None = None
+) -> dict:
+    """With a session: also the cited events (`evidence_events`) and the dependency path from
+    the root-cause resource to the alarmed resource, so a client never has to show a
+    conclusion without its evidence (D99)."""
+    out = _diagnosis_fields(row)
+    if session is not None:
+        d = (row.output or {}).get("diagnosis") or {}
+        cited = [e["evidence_id"] for e in d.get("supporting_evidence", [])]
+        cited += [e["evidence_id"] for e in d.get("contradicting_evidence", [])]
+        out["evidence_events"] = resolve_evidence(
+            session, row.incident_id, cited, sf or SecretFilter(True)
+        )
+        out["dependency_path"] = dependency_path(
+            session, row.incident_id, (d.get("root_cause") or {}).get("resource_id")
+        )
+    return out
+
+
+def _diagnosis_fields(row: DiagnosisRecord) -> dict:
     return {
         "id": row.id,
         "incident_id": row.incident_id,

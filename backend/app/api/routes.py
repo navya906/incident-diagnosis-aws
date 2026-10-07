@@ -18,6 +18,7 @@
   GET    /api/incidents/{id}/diagnoses          all diagnoses (newest first)
   GET    /api/incidents/{id}/diagnosis          latest diagnosis with severity
   GET    /api/jobs/{job_id}                     job status
+  GET    /api/offline/incidents                 dataset incidents available for import
   POST   /api/offline/import                    create an incident from the offline dataset
   GET    /api/metrics/lifecycle                 mean time to detect / diagnose / resolve
   GET    /api/audit                             audit log (newest first)
@@ -218,6 +219,32 @@ def post_inventory(request: Request, incident_id: str, body: InventoryIn) -> dic
         )
         s.commit()
         return out
+
+
+@router.get("/offline/incidents")
+def offline_incidents(
+    request: Request, split: str | None = Query(None, pattern="^(dev|test)$")
+) -> dict:
+    """Dataset incidents available for import: id, split and title (observable fields only;
+    never category, labels or any other ground truth)."""
+    from app.api.jobs import dataset_dir
+
+    try:
+        loader = DatasetLoader(dataset_dir(_state(request).settings))
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=503, detail="offline dataset not available") from e
+    items = []
+    for iid in loader.incident_ids(split):
+        inc = loader.load(iid).incident
+        items.append(
+            {
+                "incident_id": iid,
+                "split": loader.entry(iid).split,
+                "title": inc.title,
+                "alarm_time": inc.alarm_time,
+            }
+        )
+    return {"items": items, "dataset_version": loader.manifest.dataset_version}
 
 
 @router.post("/offline/import")
@@ -424,7 +451,7 @@ def list_diagnoses(request: Request, incident_id: str) -> dict:
             .where(DiagnosisRecord.incident_id == incident_id)
             .order_by(DiagnosisRecord.id.desc())
         ).all()
-        return {"items": [service.diagnosis_view(r) for r in rows]}
+        return {"items": [service.diagnosis_view(r, s, _sf(request)) for r in rows]}
 
 
 @router.get("/incidents/{incident_id}/diagnosis")
@@ -437,7 +464,7 @@ def latest_diagnosis(request: Request, incident_id: str) -> dict:
         ).first()
         if row is None:
             raise HTTPException(status_code=404, detail="no diagnosis yet")
-        return service.diagnosis_view(row)
+        return service.diagnosis_view(row, s, _sf(request))
 
 
 # ----------------------------------------------------------------------------- reporting

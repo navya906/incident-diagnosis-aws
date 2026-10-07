@@ -324,8 +324,41 @@ Known limits:
 - `/docs` and `/openapi.json` are public (schema only, no data).
 - Timings use the incident's creation time for diagnose/resolve, so imported historical incidents measure time since import, not since the original alarm (D93).
 
-## Next: Phase 9 (frontend)
-React + Vite + TypeScript + Tailwind + Recharts + React Flow: incident overview, interactive timeline, metrics charts, searchable logs, CloudTrail view, dependency graph, diagnosis page (root cause -> evidence -> timeline -> resource -> dependency path, FACT/INFERENCE/HYPOTHESIS/RECOMMENDATION labels, contradicting evidence, alternatives), all against the Phase 8 API. Gate: typecheck + build, component tests, scripted end-to-end walk-through on offline data.
+## Phase 9: Frontend — implemented, gate PASSED
+
+Branch: `phase9/frontend` (from `main` after the Phase 8 merge, PR #9). App in `frontend/`.
+
+Built:
+- Stack: React 18, Vite 5, TypeScript (strict), Tailwind 3, Recharts 3, React Flow (`@xyflow/react` 12), React Router 6; Vitest + Testing Library; Playwright for the walk-through (D101).
+- Pages: incident overview (lifecycle means, import of offline incidents, incident table) and an incident page with tabs Overview, Diagnosis, Timeline, Metrics, Logs, CloudTrail, Graph.
+  - Overview: incident facts, lifecycle panel (allowed transitions only, note field, time to detect/diagnose/resolve, transition history with actors).
+  - Diagnosis: run an async job and poll it; root cause -> supporting evidence (each claim labelled FACT/INFERENCE with the event it rests on) -> evidence timeline (onset and alarm placed in time) -> resource -> dependency path; contradicting evidence; ranked alternative hypotheses (HYPOTHESIS, confidence, why rejected); contributing factors; recommendations (RECOMMENDATION); historical influence; deterministic severity with factors and the model's suggestion marked advisory; synthetic label (D102, D103).
+  - Timeline: lane chart (log, CloudTrail, Config, alarm, anomaly) with onset/alarm lines, category toggles, window around the alarm, clickable items with details; lifecycle transitions optional.
+  - Metrics: per-resource charts around the alarm (±15/30/60 min or whole window), anomalous points in red, onset -> alarm shaded, alarmed resource selected first.
+  - Logs / CloudTrail: server-side search, severity filter, paging; CloudTrail shows the caller and error codes.
+  - Graph: React Flow, layered left to right, nodes coloured affected / can cause / upstream / downstream / unconnected with a legend.
+- "Never display a conclusion without its evidence" is a pure, tested rule (`src/lib/diagnosis.ts`): a root cause is shown only when the diagnosis is valid, is not insufficient_evidence, cites supporting evidence, and every supporting citation resolves to an event of the incident; otherwise the page says the conclusion is withheld and why. The overview never shows a root cause (D102).
+- API key: entered once per browser tab, kept in sessionStorage (never localStorage, never in URLs), sent as `X-API-Key`; same-origin `/api` through the Vite proxy (dev/preview) and nginx (Docker) (D101).
+- Backend additions: `GET /api/offline/incidents` (observable fields only) and an enriched diagnosis response with `evidence_events` (the event behind every cited id) and `dependency_path` (root-cause resource -> alarmed resource) (D99); `python -m app.demo` runs the API on offline data with the stub LLM for the walk-through and quickstart (D100).
+- Docker: `frontend/Dockerfile` (multi-stage build, nginx with `/api` proxy, SPA fallback, security headers); the API image now installs from `pyproject.toml` (it had drifted and missed `cryptography` and `faiss-cpu`); compose forwards `CLOUDDIAG_API__API_KEYS` (D105).
+- CI: new `frontend` job (typecheck, tests, build) and `e2e` job (backend + Chromium walk-through, screenshots uploaded as an artifact) (D104).
+
+Gate status:
+- [x] Typecheck (`tsc -b --noEmit`, strict) and production build pass (vendor chunks split; no size warning).
+- [x] Component tests: 29 passing (`npm test`): the evidence rule (show / withheld for missing or unresolved citations / invalid / insufficient), diagnosis section order and labels, contradicting evidence and alternatives, advisory severity, timeline markers, graph roles and layout, timeline filters and details, metric series and resource switching, log/CloudTrail search and paging, lifecycle actions and server refusals, API-key gate (sessionStorage only, header not URL), error display, diagnosis job polling.
+- [x] One scripted end-to-end walk-through on offline data (`npm run e2e`, `e2e/walkthrough.spec.ts`): real backend (`app.demo`, SQLite, stub LLM) + built frontend; enter key -> import a dev incident -> run diagnosis -> check root cause, labelled evidence with events, timeline, resource, dependency path, alternatives, contradicting evidence, recommendations, severity -> lifecycle moved by the job -> timeline -> metrics -> logs search -> CloudTrail search -> graph roles -> MITIGATING/RESOLVED/CLOSED with the header in sync -> list shows CLOSED; screenshots of every step in `frontend/test-results/walkthrough/`.
+- [x] Backend: `pytest` 359 passed, 1 skipped; `ruff` clean. Docker: `docker compose up` brings up db + api + frontend; SPA routes, `/health`, `/api` auth (401 without key, 201 create with key) and security headers verified through nginx (2026-10-07).
+
+Found while reviewing the walk-through screenshots (all fixed): the evidence timeline listed the onset first even when cited evidence came earlier; graph edges used vertical handles in a horizontal layout; timeline dots drifted between lanes with a single multi-colour series; smoothed metric lines turned steps into ramps; the page header and the overview fetched the incident separately and disagreed after a transition.
+
+Known limits:
+- Offline import in Docker needs the dataset inside the API container (the Phase 10 quickstart adds it); `python -m app.demo` covers it locally.
+- One role and one key per browser session; no user accounts (out of scope).
+- Charts use Recharts' SVG rendering; very long windows with 1 s data would need downsampling.
+- Accessibility was considered (labels, roles, a text list of graph roles) but not audited.
+
+## Next: Phase 10 (hardening, Docker, documentation, final verification)
+Production Docker configs; offline quickstart that works without AWS credentials (dataset in the image, demo key flow); test counts (>=30 unit / >=10 integration / >=5 end-to-end); docs (README, architecture, API, DB schema, AWS setup, AI architecture, evaluation and experiment methodology, security, deployment, known limitations, future work); gate: fresh clone -> `docker compose up` -> offline demo diagnosis in the UI, full suite green, numbers traceable to experiment ids.
 
 Phase 7 carry-over (D71), done: the knowledge-base conditions are in the matrix; besides B1-B4, Full and A1-A5, evaluate RAG with (a) the query's fault type removed from the knowledge base and (b) distractor entries that share alarm metric, topology and wording but differ in root cause; report accuracy, `historical_influence` declarations and `validate_historical_influence` failures for Full vs A1 under each.
 
