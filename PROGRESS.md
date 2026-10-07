@@ -75,7 +75,7 @@ Known limits:
 
 ## Phase 3: Anomaly detection — implemented, gate PASSED
 
-Branch: `phase3/anomaly-detection` (from `main`). Results: `docs/experiments/phase3-anomaly-detectors-dev.md` (+ `.csv`, `.json`).
+Branch: `phase3/anomaly-detection` (merged to `main`, PR #4). Results: `docs/experiments/phase3-anomaly-detectors-dev.md` (+ `.csv`, `.json`).
 
 Built:
 - `app/anomaly/detectors.py`: z-score, modified z-score (MAD), moving average (relative deviation), rolling std (volatility ratio), Isolation Forest. The first four share a trailing-window engine: baseline window in minutes (works at 60 s and 300 s), no look-ahead, optional exclusion of already-flagged points from the baseline, spread floor for flat series, points with too little history are skipped. Isolation Forest is fit on the first `train_minutes` of each series and scores the rest (deterministic `random_state`).
@@ -110,7 +110,7 @@ Known limits:
 
 ## Phase 4: Correlation, dependency graph, evidence ranking — implemented, gate PASSED
 
-Branch: `phase4/correlation-evidence`, branched from `phase3/anomaly-detection` (Phase 3 is pushed but not yet merged to `main`; merge Phase 3 first, D48). Results: `docs/experiments/phase4-evidence-ranking-dev.md` (+ `.csv`, `.json`).
+Branch: `phase4/correlation-evidence` (merged to `main` after Phase 3, PR #5; D48, D58). Verified on `main` at `e837887`: 176 tests pass, ruff clean. Results: `docs/experiments/phase4-evidence-ranking-dev.md` (+ `.csv`, `.json`).
 
 Built:
 - `app/graph/`: `NetworkXGraphStore` (implements `GraphStore`) with typed nodes (load_balancer, ecs_service, lambda_function, ec2_instance, rds_instance, sqs_queue, security_group, iam_role, ...) and typed edges (routes_to, connects_to, secured_by, assumes_role, sends_to, polls); `upstream`/`downstream`/`path` on structural edges, `blast_radius`/`impact_path`/`impact_sources` on the derived impact graph (D49); `build_graph()` from `ResourceRecord`/`RelationshipRecord`, which both real inventory discovery and the offline dataset produce.

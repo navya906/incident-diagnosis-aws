@@ -5,7 +5,7 @@ telemetry, reasoning over AWS dependencies, retrieving similar past incidents, a
 structured, evidence-cited root-cause diagnosis, then measuring honestly whether each component helps.
 
 > Read `BRIEF.md` (the spec), `PROGRESS.md` (where we are) and `DECISIONS.md` (why things are the way
-> they are) **before** you touch anything. Current status: **Phases 0 to 3 done**, gates passed.
+> they are) **before** you touch anything. Current status: **Phases 0 to 4 done**, gates passed.
 
 ## 1. Requirements
 
@@ -63,6 +63,7 @@ Run from `backend/` with the venv active.
 | Generate synthetic dataset | `python -m app.offline.generate` (writes `data/generated/synthetic-v1`, git-ignored) |
 | Capture a real incident (read-only AWS) | `python -m app.collectors.capture --seed-arn <arn> --start ... --end ... --title ... --description ... --out ../data/captured` (see `docs/aws-setup.md`) |
 | Compare anomaly detectors (dev split) | `python -m app.evaluation.anomaly_eval [--sweep]` (writes `docs/experiments/`) |
+| Evaluate evidence ranking and candidate causes (dev split) | `python -m app.evaluation.evidence_eval [--tune]` (writes `docs/experiments/`) |
 | Fault-injection plan (dry run) | `python -m app.offline.fault_injection --stack <name> --fault <fault>` |
 | Run API locally (needs a DB, or SQLite URL) | `uvicorn app.main:app --reload` |
 | Apply migrations | `alembic upgrade head` |
@@ -106,7 +107,11 @@ backend/
                   discovery, capture CLI
     anomaly/      Phase 3: statistical detectors (z-score, MAD, moving average, rolling std,
                   Isolation Forest) and the service that runs them
-    evaluation/   experiment evaluation (Phase 3: detector comparison)
+    graph/        Phase 4: NetworkX dependency graph (GraphStore), built from inventory or dataset
+    correlation/  Phase 4: investigation windows, onset/temporal ranking, event chains,
+                  candidate causes
+    evidence/     Phase 4: evidence ranking (Section 2 score), semantic scorer, pipeline
+    evaluation/   experiment evaluation (Phase 3: detector comparison; Phase 4: evidence P/R@K)
     baselines/ ai/   filled in by later phases
 frontend/                              placeholder until Phase 9
 infra/                                 real test stack, fault injection, read-only IAM policy
