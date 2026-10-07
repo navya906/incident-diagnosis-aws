@@ -167,7 +167,7 @@ RQ6 experiments: sweep K ∈ {5, 10, 20, 40}, time window ∈ {5, 15, 30, 60 min
 | 7 Evaluation, baselines, ablations | Implemented, gate passed (full 25-condition matrix with the stub on dev, reproducible by experiment id; RUNBOOK for real-LLM test runs). |
 | 8 Backend API, lifecycle, security | Implemented, gate passed (API tests for all 22 routes, lifecycle and security tests; migration 0003 verified on PostgreSQL). |
 | 9 Frontend | Implemented, gate passed (typecheck + build, component tests, scripted end-to-end walk-through on offline data; Docker stack verified). |
-| 10 | Not started. |
+| 10 Hardening, Docker, docs, verification | Implemented, gate passed (fresh clone -> `docker compose up` -> offline demo diagnosis in the UI; 255 unit / 164 integration / 8 e2e tests; docs checked by tests; numbers traceable to `exp-`/`rpt-` ids). |
 
 Amendments (details in DECISIONS.md):
 - Python target is `>=3.11` (dev machine runs 3.12; Docker image uses 3.11).
@@ -184,3 +184,4 @@ Amendments (details in DECISIONS.md):
 - Phase 7: B2/B3 are context modes and A5 a ranking mode of the existing pipeline (D78, D83); B1 shares the stub's keyword table (D79); the matrix adds the D71 knowledge-base conditions; experiment ids include a hash of the application source so that the same id means the same code (D82); `HistoricalRecord.source` gains `distractor` for evaluation-only entries (D83). Added before committing: `Full-no-redaction` (D87), cluster bootstrap by fault type with pre-declared Holm-corrected primary comparisons (D85), case-type strata (D90), a verifier audit with injected faults (D89), a cheaper run plan (D86) and a judge different-family rule (D88).
 - Phase 8: the original spec's endpoint list is not in the repo, so endpoints were derived from the data model and frontend needs (D91); `cryptography` added for SNS signature verification (D95); migration 0003 (lifecycle, jobs, audit) (D98).
 - Phase 9: Recharts 3 instead of 2 (deprecated) and other stable majors pinned (D101); diagnosis responses gain `evidence_events` and `dependency_path`, plus `GET /api/offline/incidents` (D99); the API Docker image installs from pyproject (D105).
+- Phase 10: `verify` treats a code change as a note and compares results without each record's experiment id (D107); compose default is the offline demo with a documented dev-only key, production override refuses it (D108); test categories are assigned by a rule in conftest (D109); component reports carry content-addressed `rpt-` ids (D110); the UI retries 429 after Retry-After (D111); docs are checked by tests (D112).

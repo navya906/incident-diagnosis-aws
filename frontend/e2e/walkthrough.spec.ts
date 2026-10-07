@@ -1,14 +1,18 @@
 import { expect, test, type Page } from "@playwright/test";
 import { E2E_KEY } from "../playwright.config";
-import { firstFree, manifest, shot as save, tab } from "./helpers";
+import { firstFree, manifest, observableEvents, shot as save, tab } from "./helpers";
 
 // One scripted walk-through of the whole UI on an offline incident (smoke-test / synthetic).
-// The dataset manifest is read only to pick a representative "standard" incident with
-// CloudTrail activity; nothing about the expected diagnosis is asserted from ground truth.
+// The dataset manifest is read only to pick a representative "standard" incident, and its
+// observable file to require the UpdateService call the CloudTrail search below looks for (some
+// variants hide the triggering call, as real CloudTrail gaps would). Nothing about the expected
+// diagnosis is asserted from ground truth.
 function candidates(): string[] {
+  if (process.env.E2E_WALKTHROUGH_INCIDENT) return [process.env.E2E_WALKTHROUGH_INCIDENT];
   const ids = manifest()
     .filter((x) => x.split === "dev" && x.category === "standard" && x.fault_type === "deployment_failure" && x.topology === "ecs")
-    .map((x) => x.incident_id);
+    .map((x) => x.incident_id)
+    .filter((id) => observableEvents(id).some((e) => e.source === "cloudtrail" && e.event_type === "UpdateService"));
   if (!ids.length) throw new Error("no suitable dev incident in the dataset");
   return ids;
 }
@@ -57,6 +61,9 @@ test("walk-through: import, diagnose, inspect every view, resolve and close", as
   await expect(page.getByTestId("recommendations").getByTestId("claim-label").first()).toHaveText("RECOMMENDATION");
   await expect(page.getByTestId("severity")).toContainText("deterministic engine");
   await expect(page.getByText("smoke-test / synthetic").first()).toBeVisible();
+  // The header follows the job: DIAGNOSED with the deterministic severity, not stale DETECTED.
+  await expect(page.getByTestId("incident-header")).toContainText("DIAGNOSED");
+  await expect(page.getByTestId("incident-header")).not.toContainText("no severity yet");
   await shot(page, "03-diagnosis");
 
   // 4. The job moved the lifecycle (system transitions with timestamps).

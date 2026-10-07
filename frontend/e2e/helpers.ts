@@ -25,6 +25,12 @@ export function manifest(): ManifestEntry[] {
   return (JSON.parse(fs.readFileSync(file, "utf-8")) as { entries: ManifestEntry[] }).entries;
 }
 
+/** Observable telemetry of a dataset incident (the same file the API imports; no ground truth). */
+export function observableEvents(id: string): { source: string; event_type: string }[] {
+  const file = path.resolve(__dirname, "..", "..", "data", "generated", "synthetic-v1", "incidents", `${id}.json`);
+  return (JSON.parse(fs.readFileSync(file, "utf-8")) as { events: { source: string; event_type: string }[] }).events;
+}
+
 export const authHeaders = { "X-API-Key": E2E_KEY };
 
 export async function isImported(request: APIRequestContext, id: string): Promise<boolean> {
