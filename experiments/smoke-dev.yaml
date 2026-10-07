@@ -1,0 +1,35 @@
+# Phase 7 gate: the full matrix with the stub LLM on the dev split (smoke-test / synthetic).
+#   cd backend && python -m app.experiments run --config ../experiments/smoke-dev.yaml
+name: smoke-dev
+description: Full condition matrix (B1-B4, Full, A1-A5, knowledge-base conditions, Full without redaction, RQ6) with the LOCAL-ONLY stub LLM.
+label: smoke-test / synthetic
+split: dev
+runs: 1
+runs_ablations: 1
+runs_sweeps: 1
+seed: 0
+conditions: [B1, B2, B3, B4, Full, A1, A2, A3, A4, A5, Full-KB-fault-removed, Full-KB-distractors, Full-no-redaction]
+rq6:
+  k: [5, 10, 20, 40]
+  window: [5, 15, 30, 60]
+  evidence_types: [metrics, +cloudtrail, +logs, +config]
+# Cheaper plan (D86): self-consistency only where calibration is reported in the paper tables.
+self_consistency_samples: 2
+self_consistency_conditions: [Full, B4]
+# Pre-declared primary comparisons (D85); Holm-corrected as one family. Do not edit after runs.
+primary_comparisons:
+  - {condition: B2, vs: Full, metric: root_cause_correct}
+  - {condition: B3, vs: Full, metric: root_cause_correct}
+  - {condition: B4, vs: Full, metric: root_cause_correct}
+  - {condition: A1, vs: Full, metric: root_cause_correct}
+  - {condition: A2, vs: Full, metric: root_cause_correct}
+  - {condition: A5, vs: Full, metric: root_cause_correct}
+distractors_per_incident: 2
+spot_check_fraction: 0.1
+bootstrap: {iterations: 2000, seed: 0, alpha: 0.05}
+# LLM judge for the free-text rubric. The judge MUST be a different model family from the
+# diagnosing model (the config is rejected otherwise, D88). Not used with the stub.
+judge: {enabled: false, provider: gemini, model: gemini-1.5-pro-002}
+settings:
+  llm: {provider: stub, model: stub-deterministic}
+  embeddings: {provider: hashing, dimension: 384}

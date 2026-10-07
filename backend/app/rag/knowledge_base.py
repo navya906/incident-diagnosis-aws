@@ -149,6 +149,28 @@ class KnowledgeBase:
     def indexed_ids(self) -> set[str]:
         return self.store.ids(self.index_name)
 
+    def extended(self, extra: list[HistoricalRecord]) -> KnowledgeBase:
+        """A copy with `extra` records added (same leakage guard; base vectors reused). Needs a
+        store with `clone()` (LocalVectorStore)."""
+        kb = KnowledgeBase(self.embedder, self.store.clone(), self.index_name, self.forbidden)
+        kb.records = dict(self.records)
+        for r in extra:
+            if self.forbidden & set(r.fingerprints):
+                raise LeakageError(f"{r.incident_id} matches held-out fingerprints")
+            if r.incident_id in kb.records:
+                raise ValueError(f"duplicate incident id {r.incident_id}")
+        if extra:
+            vectors = self.embedder.embed([r.search_text for r in extra])
+            kb.store.add(
+                self.index_name,
+                [r.incident_id for r in extra],
+                vectors,
+                [{"taxonomy_label": r.taxonomy_label.value, "source": r.source} for r in extra],
+                self.embedder.model_name,
+            )
+            kb.records.update({r.incident_id: r for r in extra})
+        return kb
+
 
 class HistoricalRetriever:
     def __init__(self, kb: KnowledgeBase, settings: RagSettings | None = None):
@@ -161,10 +183,19 @@ class HistoricalRetriever:
         k: int | None = None,
         exclude_ids: set[str] | None = None,
         rerank: bool = True,
+        exclude_labels: set[str] | None = None,
     ) -> list[RetrievedIncident]:
+        """`exclude_labels` removes every record with those taxonomy labels from the
+        candidates (the Phase 7 'fault type removed' knowledge-base condition, D71)."""
         st = self.settings
         k = k or st.top_k
         exclude = set(exclude_ids or ())
+        if exclude_labels:
+            exclude |= {
+                rid
+                for rid, rec in self.kb.records.items()
+                if rec.taxonomy_label.value in exclude_labels
+            }
         if query.incident_id:
             exclude.add(query.incident_id)
         [vector] = self.kb.embedder.embed([query.text])

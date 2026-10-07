@@ -242,10 +242,64 @@ Known limits:
 - Self-consistency counts invalid samples as disagreeing; with the stub, temperature only perturbs keyword scores, so agreement (0.98) says nothing about a real model.
 - Diagnoses are not yet persisted to the `diagnoses` table (API/DB wiring is Phase 8).
 
-## Next: Phase 7 (evaluation, baselines, ablations)
-B1-B4, Full, A1-A5 and RQ6 sweeps; all metrics (taxonomy accuracy, top-K, evidence P/R, calibration incl. self-consistency, hallucination rate via the citation verifier, recommendation rubric, latency, tokens/cost); YAML experiment configs and experiment ids; bootstrap CIs and paired tests; CLI with `--split dev|test`; `docs/experiments/RUNBOOK.md` for real-LLM runs. Must include the knowledge-base conditions of D71 (fault type removed, distractors).
+## Phase 7: Evaluation, baselines, ablations — implemented, gate PASSED
 
-Carry-over for Phase 7 (D71): besides B1-B4, Full and A1-A5, evaluate RAG with (a) the query's fault type removed from the knowledge base and (b) distractor entries that share alarm metric, topology and wording but differ in root cause; report accuracy, `historical_influence` declarations and `validate_historical_influence` failures for Full vs A1 under each.
+Branch: `phase7/evaluation` (from `main` after the Phase 6 merge). Gate run: `docs/experiments/runs/exp-fbeacbc7cd9b/` (`report.md`, `summary.*`, `comparisons.*`, `results.csv`, `manifest.json`; `results.jsonl` is git-ignored and regenerable). Real-LLM instructions: `docs/experiments/RUNBOOK.md`.
+
+Built:
+- `app/experiments/config.py`: YAML experiment configs (`experiments/*.yaml`) validated by `ExperimentConfig` (conditions, runs N, seed, self-consistency samples, RQ6 sweeps, bootstrap, spot-check fraction, settings overrides; secrets refused). The condition matrix: B1-B4, Full, A1-A5 (BRIEF Section 4), the knowledge-base conditions `Full-KB-fault-removed` and `Full-KB-distractors` (D71), `Full-no-redaction` (D87), and RQ6 sweeps of K, window and evidence types (Full with one thing changed): 25 conditions (D83).
+- `app/baselines/rules.py`: B1 rule-based baseline (D79). B2 (description only) and B3 (raw telemetry newest-first under the same token budget) are new context modes of the context builder (D78); A5 is a recency ranking mode of the evidence pipeline; KB conditions use label exclusion and per-incident distractor entries.
+- `app/evaluation/metrics.py`: per-diagnosis metrics: taxonomy accuracy, resource and root-cause match, top-3, compound secondary label found, cited-evidence precision/recall, context recall/precision, first-answer citation checks (hallucination rate), verbalised and self-consistency confidence, recommendation rubric (deterministic proxy `rubric-v1` + LLM-judge prompt + human spot-check sample), severity, latency, tokens, cost (D81).
+- `app/evaluation/stats.py`: bootstrap intervals over incidents, paired bootstrap differences, exact McNemar, ECE and Brier (D80).
+- `app/experiments/runner.py` + CLI `python -m app.experiments run|verify|list`: experiment ids from config + dataset + corpus + prompt + model + embedder + source hash; manifest with model and provider-reported versions, prompt version/hash, dataset/corpus versions, config, effective settings (no secrets), timestamps, git commit, library versions, totals and a results hash; CSV/JSON export; optional database storage (`evaluation_runs`, `experiment_results`); `--split dev|test` with `--final` required for test; `verify` re-runs an id and compares the results hash (D82).
+- `experiments/`: `smoke-dev.yaml` (gate), `real-dev-pilot.yaml`, `real-test-openai.yaml`, `real-test-gemini.yaml` (cheaper plan: N=3 for baselines and Full, N=1 for ablations and sweeps, self-consistency only for Full and B4; example model versions to replace with current ones).
+- `docs/experiments/RUNBOOK.md`: exact commands for real-LLM runs on the test split, cost estimate, reproducibility with non-deterministic models, judge and spot-check procedure, results template.
+- Engine extensions: `context_mode` (ranked/raw/description), `ranking_mode` (score/recency), weight overrides, window/K per call, retriever override and label exclusion; attempts record the provider-reported model and first-answer citation counts.
+
+Hardening before committing (D85-D90):
+- `Full-no-redaction` condition: Full with redaction off, to measure what redaction costs in quality; offline only, the run fails closed in aws mode (D87).
+- Statistics: cluster bootstrap by ground-truth fault type (11 clusters on dev) for summary intervals and paired comparisons; pre-declared primary comparisons in the config (B2, B3, B4, A1, A2, A5 vs Full on root-cause match) Holm-corrected as one family; everything else marked exploratory (D85).
+- Stratified tables by case type: clean, red-herring, compound, insufficient-evidence (`strata.*`, report section) (D90).
+- Verifier audit (`python -m app.evaluation.verifier_audit`, `docs/experiments/phase7-verifier-audit.md`): faults injected into valid answers on all 86 dev incidents. Detection: fabricated ids 86/86, historical ids 86/86, wrong values 86/86, unknown root-cause resource 84/84, uncited conclusions 84/84, unsupported claims 82/86 (lexical check); 0 false positives on clean answers. It found and fixed three bugs: scientific-notation numbers escaped the quoted-value check; hex ids like `f7e821be` parsed as infinity and matched any quoted value; the stub's insufficient-evidence explanation was unsupported by its cited line (D89).
+- Cheaper run plan: `runs_ablations`, `runs_sweeps`, `self_consistency_conditions`; `python -m app.experiments plan` counts calls and estimates cost. Final test run: 2,356 calls (was 16,416), about 15.3M input + 3.1M output tokens, about $69 (OpenAI example prices) or $34 (Gemini) (D86).
+- Judge config: the judge must be a different model family from the diagnosing model; the config is rejected otherwise, and model families are read from the model name before the provider (D88).
+
+Gate status:
+- [x] Full matrix end-to-end with the stub LLM on dev: 25 conditions x 86 incidents = 2,150 diagnoses, 0 rejected, in under 2 minutes; outputs labelled **smoke-test / synthetic** (`exp-fbeacbc7cd9b`).
+- [x] Reproducible by experiment id: `python -m app.experiments verify exp-fbeacbc7cd9b` re-ran all 2,150 diagnoses and matched the stored results hash (`fd16e8c5...`); the id was re-checked after committing (it does not depend on the commit); tests also check that changed inputs change the id and that the test split needs `--final`.
+- [x] `docs/experiments/RUNBOOK.md` gives the exact commands for real-LLM runs on the test split (OpenAI-compatible and Gemini), checked by a test.
+- [x] `pytest` 324 passed, 1 skipped; `ruff check` and `ruff format --check` clean.
+
+Smoke results (dev, stub LLM, **not results**: the stub and B1 share keyword rules written against the simulator's wording, D75/D79):
+
+| condition | accuracy [95% CI] | root cause | evidence recall | context recall |
+|---|---|---|---|---|
+| B1 rules | 0.686 [0.593, 0.779] | 0.674 | 0.263 | n/a |
+| B2 description only | 0.046 [0.012, 0.093] | 0.046 | 0.000 | 0.000 |
+| B3 raw telemetry by recency | 0.186 [0.105, 0.268] | 0.174 | 0.009 | 0.524 |
+| B4 ranked evidence | 0.930 [0.872, 0.977] | 0.779 | 0.300 | 0.502 |
+| Full | 0.965 [0.919, 1.000] | 0.895 | 0.372 | 0.601 |
+| A4 no temporal | 0.779 [0.686, 0.861] | 0.698 | 0.305 | 0.600 |
+| RQ6 metrics only | 0.337 [0.244, 0.442] | 0.186 | 0.072 | 0.287 |
+
+What these smoke numbers can and cannot show:
+- They show the plumbing works: each condition changes what the model sees (context recall moves as expected; B2 and metrics-only contexts leave the stub with little to cite), and the statistics run: primary comparisons (cluster bootstrap, Holm) B2 vs Full -0.849 (Holm p < 0.001), B3 -0.721 (< 0.001), B4 -0.116 (0.008), A2 -0.116 (0.008), A1 0.000 (1.0), A5 +0.070 (0.376).
+- A1, both knowledge-base conditions and Full-no-redaction equal Full exactly: the stub never uses retrieved history to choose a label, and it is local, so redaction never applies to it. These conditions run, but only a real LLM can show whether RAG helps or misleads and what redaction costs.
+- By case type (Full): clean 1.000 accuracy (70), red-herring 1.000 (8), compound 0.750 (4), insufficient-evidence 0.500 (4); the small strata make these very uncertain.
+- A5 (recency) scores at least as well as Full despite context recall 0.014: the stub still reads the candidate-cause timeline. This is a stub artifact, not a finding about ranking.
+- Hallucination rate is 0 everywhere because the stub only cites lines it was shown.
+
+Known limits:
+- No real-LLM run yet (no keys in the build environment); the configs pin example model versions that must be replaced with current ones before running.
+- Bootstrap streams depend on the NumPy version (recorded in the manifest); intervals can shift slightly across NumPy versions.
+- Calibration (ECE) on 86 or 38 incidents per condition is noisy; only the six primary comparisons are Holm-corrected, the exploratory table is not. With 11 fault-type clusters the cluster intervals are coarse.
+- The rubric score is a deterministic proxy; the LLM-judge rubric and the human spot check are manual steps for real runs.
+- The unsupported-claim check is lexical: false claims that reuse words from the cited line pass (4/86 in the audit); semantic support needs the LLM judge.
+
+## Next: Phase 8 (backend API, lifecycle, security)
+REST endpoints, CloudWatch Alarm -> SNS/EventBridge ingestion webhook, async diagnosis jobs, incident lifecycle with transition timestamps and time-to-detect/diagnose/resolve, API-key auth, rate limiting, input validation, audit logging, secret filtering; persist incidents, events, evidence and diagnoses. Gate: API tests for all endpoints, lifecycle transition tests, security tests.
+
+Phase 7 carry-over (D71), done: the knowledge-base conditions are in the matrix; besides B1-B4, Full and A1-A5, evaluate RAG with (a) the query's fault type removed from the knowledge base and (b) distractor entries that share alarm metric, topology and wording but differ in root cause; report accuracy, `historical_influence` declarations and `validate_historical_influence` failures for Full vs A1 under each.
 
 ## Team hand-off
 Setup, commands and working rules are in `README.md` and `CONTRIBUTING.md`. CI runs ruff (lint + format check) and pytest on every PR. Branch naming: `phaseN/<topic>`.

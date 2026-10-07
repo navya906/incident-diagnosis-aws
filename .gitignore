@@ -10,3 +10,6 @@ dist/
 data/generated/
 .pytest_tmp/
 .fault-state/
+
+# Experiment results: large and regenerable from the experiment id (python -m app.experiments verify)
+docs/experiments/runs/*/results.jsonl

@@ -110,6 +110,9 @@ class DiagnosisSettings(BaseModel):
     max_signals_per_section: int = Field(default=25, ge=1)
     #: Relative tolerance when a number quoted in an explanation is matched to its evidence.
     quote_tolerance: float = Field(default=0.01, ge=0)
+    #: Reject FACT explanations with no lexical support in the cited line (else only count
+    #: them in the hallucination rate). Off by default: paraphrasing models could trip it.
+    reject_unsupported_claims: bool = False
     use_historical: bool = True
 
 

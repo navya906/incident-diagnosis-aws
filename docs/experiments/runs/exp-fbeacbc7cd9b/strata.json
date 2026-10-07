@@ -1,0 +1,902 @@
+[
+  {
+    "condition": "B1",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 0.7286,
+    "root_cause_correct": 0.7286,
+    "cited_recall": 0.2652,
+    "valid": 1.0
+  },
+  {
+    "condition": "B1",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 0.75,
+    "root_cause_correct": 0.625,
+    "cited_recall": 0.301,
+    "valid": 1.0
+  },
+  {
+    "condition": "B1",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.25,
+    "root_cause_correct": 0.25,
+    "cited_recall": 0.1456,
+    "valid": 1.0
+  },
+  {
+    "condition": "B1",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.25,
+    "root_cause_correct": 0.25,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "B2",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 0.0,
+    "root_cause_correct": 0.0,
+    "cited_recall": 0.0,
+    "valid": 1.0
+  },
+  {
+    "condition": "B2",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 0.0,
+    "root_cause_correct": 0.0,
+    "cited_recall": 0.0,
+    "valid": 1.0
+  },
+  {
+    "condition": "B2",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.0,
+    "root_cause_correct": 0.0,
+    "cited_recall": 0.0,
+    "valid": 1.0
+  },
+  {
+    "condition": "B2",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 1.0,
+    "root_cause_correct": 1.0,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "B3",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 0.1286,
+    "root_cause_correct": 0.1143,
+    "cited_recall": 0.0077,
+    "valid": 1.0
+  },
+  {
+    "condition": "B3",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 0.375,
+    "root_cause_correct": 0.375,
+    "cited_recall": 0.025,
+    "valid": 1.0
+  },
+  {
+    "condition": "B3",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.0,
+    "root_cause_correct": 0.0,
+    "cited_recall": 0.0,
+    "valid": 1.0
+  },
+  {
+    "condition": "B3",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 1.0,
+    "root_cause_correct": 1.0,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "B4",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 0.9714,
+    "root_cause_correct": 0.8143,
+    "cited_recall": 0.304,
+    "valid": 1.0
+  },
+  {
+    "condition": "B4",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.3229,
+    "valid": 1.0
+  },
+  {
+    "condition": "B4",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": 0.1758,
+    "valid": 1.0
+  },
+  {
+    "condition": "B4",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "Full",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.9429,
+    "cited_recall": 0.3836,
+    "valid": 1.0
+  },
+  {
+    "condition": "Full",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.3479,
+    "valid": 1.0
+  },
+  {
+    "condition": "Full",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.75,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.2092,
+    "valid": 1.0
+  },
+  {
+    "condition": "Full",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "A1",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.9429,
+    "cited_recall": 0.3836,
+    "valid": 1.0
+  },
+  {
+    "condition": "A1",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.3479,
+    "valid": 1.0
+  },
+  {
+    "condition": "A1",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.75,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.2092,
+    "valid": 1.0
+  },
+  {
+    "condition": "A1",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "A2",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 0.9714,
+    "root_cause_correct": 0.8143,
+    "cited_recall": 0.304,
+    "valid": 1.0
+  },
+  {
+    "condition": "A2",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.3229,
+    "valid": 1.0
+  },
+  {
+    "condition": "A2",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": 0.1758,
+    "valid": 1.0
+  },
+  {
+    "condition": "A2",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "A3",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.9714,
+    "cited_recall": 0.299,
+    "valid": 1.0
+  },
+  {
+    "condition": "A3",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.875,
+    "cited_recall": 0.1865,
+    "valid": 1.0
+  },
+  {
+    "condition": "A3",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": 0.1602,
+    "valid": 1.0
+  },
+  {
+    "condition": "A3",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 1.0,
+    "root_cause_correct": 1.0,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "A4",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 0.8,
+    "root_cause_correct": 0.7286,
+    "cited_recall": 0.3117,
+    "valid": 1.0
+  },
+  {
+    "condition": "A4",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 0.875,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.3323,
+    "valid": 1.0
+  },
+  {
+    "condition": "A4",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.25,
+    "cited_recall": 0.1445,
+    "valid": 1.0
+  },
+  {
+    "condition": "A4",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "A5",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 1.0,
+    "root_cause_correct": 1.0,
+    "cited_recall": 0.3139,
+    "valid": 1.0
+  },
+  {
+    "condition": "A5",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.875,
+    "cited_recall": 0.2906,
+    "valid": 1.0
+  },
+  {
+    "condition": "A5",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 1.0,
+    "root_cause_correct": 1.0,
+    "cited_recall": 0.1698,
+    "valid": 1.0
+  },
+  {
+    "condition": "A5",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "Full-KB-fault-removed",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.9429,
+    "cited_recall": 0.3836,
+    "valid": 1.0
+  },
+  {
+    "condition": "Full-KB-fault-removed",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.3479,
+    "valid": 1.0
+  },
+  {
+    "condition": "Full-KB-fault-removed",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.75,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.2092,
+    "valid": 1.0
+  },
+  {
+    "condition": "Full-KB-fault-removed",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "Full-KB-distractors",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.9429,
+    "cited_recall": 0.3836,
+    "valid": 1.0
+  },
+  {
+    "condition": "Full-KB-distractors",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.3479,
+    "valid": 1.0
+  },
+  {
+    "condition": "Full-KB-distractors",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.75,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.2092,
+    "valid": 1.0
+  },
+  {
+    "condition": "Full-KB-distractors",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "Full-no-redaction",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.9429,
+    "cited_recall": 0.3836,
+    "valid": 1.0
+  },
+  {
+    "condition": "Full-no-redaction",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.3479,
+    "valid": 1.0
+  },
+  {
+    "condition": "Full-no-redaction",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.75,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.2092,
+    "valid": 1.0
+  },
+  {
+    "condition": "Full-no-redaction",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-K5",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.9571,
+    "cited_recall": 0.3499,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-K5",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.875,
+    "cited_recall": 0.2698,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-K5",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 1.0,
+    "root_cause_correct": 1.0,
+    "cited_recall": 0.1698,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-K5",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.75,
+    "root_cause_correct": 0.75,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-K10",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.9429,
+    "cited_recall": 0.3836,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-K10",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.3479,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-K10",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.75,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.2092,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-K10",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-K20",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.9143,
+    "cited_recall": 0.382,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-K20",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.3229,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-K20",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.1864,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-K20",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-K40",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.8857,
+    "cited_recall": 0.3752,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-K40",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.3104,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-K40",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.75,
+    "root_cause_correct": 0.5,
+    "cited_recall": 0.1217,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-K40",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-W5",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 0.8571,
+    "root_cause_correct": 0.7286,
+    "cited_recall": 0.2657,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-W5",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.2437,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-W5",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.0,
+    "root_cause_correct": 0.0,
+    "cited_recall": 0.1758,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-W5",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-W15",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.9286,
+    "cited_recall": 0.3881,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-W15",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.3531,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-W15",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.75,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.2092,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-W15",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-W30",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.9429,
+    "cited_recall": 0.3836,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-W30",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.3479,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-W30",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.75,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.2092,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-W30",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-W60",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.9429,
+    "cited_recall": 0.386,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-W60",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.3479,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-W60",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.75,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.2092,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-W60",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-Emetrics",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 0.3286,
+    "root_cause_correct": 0.1714,
+    "cited_recall": 0.0726,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-Emetrics",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 0.375,
+    "root_cause_correct": 0.25,
+    "cited_recall": 0.0802,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-Emetrics",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.25,
+    "root_cause_correct": 0.0,
+    "cited_recall": 0.0461,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-Emetrics",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-E+cloudtrail",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 0.6857,
+    "root_cause_correct": 0.6,
+    "cited_recall": 0.1448,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-E+cloudtrail",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": 0.1083,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-E+cloudtrail",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": 0.0617,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-E+cloudtrail",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-E+logs",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.9429,
+    "cited_recall": 0.3741,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-E+logs",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.3198,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-E+logs",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.75,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.1945,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-E+logs",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-E+config",
+    "case_type": "clean",
+    "n": 70,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.9429,
+    "cited_recall": 0.3836,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-E+config",
+    "case_type": "red-herring",
+    "n": 8,
+    "label_correct": 1.0,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.3479,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-E+config",
+    "case_type": "compound",
+    "n": 4,
+    "label_correct": 0.75,
+    "root_cause_correct": 0.75,
+    "cited_recall": 0.2092,
+    "valid": 1.0
+  },
+  {
+    "condition": "RQ6-E+config",
+    "case_type": "insufficient-evidence",
+    "n": 4,
+    "label_correct": 0.5,
+    "root_cause_correct": 0.5,
+    "cited_recall": null,
+    "valid": 1.0
+  }
+]

@@ -1,0 +1,474 @@
+{
+  "experiment_id": "exp-fbeacbc7cd9b",
+  "name": "smoke-dev",
+  "label": "smoke-test / synthetic",
+  "split": "dev",
+  "started_at": "2026-10-07T15:34:38.441545+00:00",
+  "finished_at": "2026-10-07T15:36:13.270625+00:00",
+  "model": {
+    "provider": "stub",
+    "model": "stub-deterministic-v1"
+  },
+  "model_versions_reported": [
+    "stub-deterministic-v1"
+  ],
+  "prompt_version": "diag-v1",
+  "prompt_sha": "9df947fcdc3580a0",
+  "rubric_version": "rubric-v1",
+  "dataset": {
+    "version": "synthetic-v1",
+    "content_sha256": "06cec245b951be8e9b08524367439b5ee3d37fa75d6551d3bb8e2922d8388f8b",
+    "generator_version": "1.1.0",
+    "seed": 42
+  },
+  "corpus": {
+    "version": "historical-v1",
+    "sha": "abb3f72be3902e72",
+    "size": 40
+  },
+  "embedder": "hashing-v1-384",
+  "incidents": 86,
+  "conditions": [
+    "B1",
+    "B2",
+    "B3",
+    "B4",
+    "Full",
+    "A1",
+    "A2",
+    "A3",
+    "A4",
+    "A5",
+    "Full-KB-fault-removed",
+    "Full-KB-distractors",
+    "Full-no-redaction",
+    "RQ6-K5",
+    "RQ6-K10",
+    "RQ6-K20",
+    "RQ6-K40",
+    "RQ6-W5",
+    "RQ6-W15",
+    "RQ6-W30",
+    "RQ6-W60",
+    "RQ6-Emetrics",
+    "RQ6-E+cloudtrail",
+    "RQ6-E+logs",
+    "RQ6-E+config"
+  ],
+  "runs_per_condition": {
+    "B1": 1,
+    "B2": 1,
+    "B3": 1,
+    "B4": 1,
+    "Full": 1,
+    "A1": 1,
+    "A2": 1,
+    "A3": 1,
+    "A4": 1,
+    "A5": 1,
+    "Full-KB-fault-removed": 1,
+    "Full-KB-distractors": 1,
+    "Full-no-redaction": 1,
+    "RQ6-K5": 1,
+    "RQ6-K10": 1,
+    "RQ6-K20": 1,
+    "RQ6-K40": 1,
+    "RQ6-W5": 1,
+    "RQ6-W15": 1,
+    "RQ6-W30": 1,
+    "RQ6-W60": 1,
+    "RQ6-Emetrics": 1,
+    "RQ6-E+cloudtrail": 1,
+    "RQ6-E+logs": 1,
+    "RQ6-E+config": 1
+  },
+  "self_consistency_per_condition": {
+    "B2": 0,
+    "B3": 0,
+    "B4": 2,
+    "Full": 2,
+    "A1": 0,
+    "A2": 0,
+    "A3": 0,
+    "A4": 0,
+    "A5": 0,
+    "Full-KB-fault-removed": 0,
+    "Full-KB-distractors": 0,
+    "Full-no-redaction": 0,
+    "RQ6-K5": 0,
+    "RQ6-K10": 0,
+    "RQ6-K20": 0,
+    "RQ6-K40": 0,
+    "RQ6-W5": 0,
+    "RQ6-W15": 0,
+    "RQ6-W30": 0,
+    "RQ6-W60": 0,
+    "RQ6-Emetrics": 0,
+    "RQ6-E+cloudtrail": 0,
+    "RQ6-E+logs": 0,
+    "RQ6-E+config": 0
+  },
+  "primary_comparisons": [
+    {
+      "condition": "B2",
+      "vs": "Full",
+      "metric": "root_cause_correct"
+    },
+    {
+      "condition": "B3",
+      "vs": "Full",
+      "metric": "root_cause_correct"
+    },
+    {
+      "condition": "B4",
+      "vs": "Full",
+      "metric": "root_cause_correct"
+    },
+    {
+      "condition": "A1",
+      "vs": "Full",
+      "metric": "root_cause_correct"
+    },
+    {
+      "condition": "A2",
+      "vs": "Full",
+      "metric": "root_cause_correct"
+    },
+    {
+      "condition": "A5",
+      "vs": "Full",
+      "metric": "root_cause_correct"
+    }
+  ],
+  "judge": {
+    "enabled": false,
+    "provider": "gemini",
+    "model": "gemini-1.5-pro-002",
+    "note": "The judge must be a different model family from the diagnosing model."
+  },
+  "config": {
+    "name": "smoke-dev",
+    "description": "Full condition matrix (B1-B4, Full, A1-A5, knowledge-base conditions, Full without redaction, RQ6) with the LOCAL-ONLY stub LLM.",
+    "label": "smoke-test / synthetic",
+    "split": "dev",
+    "limit": null,
+    "runs": 1,
+    "runs_ablations": 1,
+    "runs_sweeps": 1,
+    "self_consistency_conditions": [
+      "Full",
+      "B4"
+    ],
+    "primary_comparisons": [
+      {
+        "condition": "B2",
+        "vs": "Full",
+        "metric": "root_cause_correct"
+      },
+      {
+        "condition": "B3",
+        "vs": "Full",
+        "metric": "root_cause_correct"
+      },
+      {
+        "condition": "B4",
+        "vs": "Full",
+        "metric": "root_cause_correct"
+      },
+      {
+        "condition": "A1",
+        "vs": "Full",
+        "metric": "root_cause_correct"
+      },
+      {
+        "condition": "A2",
+        "vs": "Full",
+        "metric": "root_cause_correct"
+      },
+      {
+        "condition": "A5",
+        "vs": "Full",
+        "metric": "root_cause_correct"
+      }
+    ],
+    "judge": {
+      "enabled": false,
+      "provider": "gemini",
+      "model": "gemini-1.5-pro-002",
+      "note": "The judge must be a different model family from the diagnosing model."
+    },
+    "seed": 0,
+    "conditions": [
+      "B1",
+      "B2",
+      "B3",
+      "B4",
+      "Full",
+      "A1",
+      "A2",
+      "A3",
+      "A4",
+      "A5",
+      "Full-KB-fault-removed",
+      "Full-KB-distractors",
+      "Full-no-redaction"
+    ],
+    "rq6": {
+      "k": [
+        5,
+        10,
+        20,
+        40
+      ],
+      "window": [
+        5,
+        15,
+        30,
+        60
+      ],
+      "evidence_types": [
+        "metrics",
+        "+cloudtrail",
+        "+logs",
+        "+config"
+      ]
+    },
+    "self_consistency_samples": 2,
+    "distractors_per_incident": 2,
+    "spot_check_fraction": 0.1,
+    "bootstrap": {
+      "iterations": 2000,
+      "seed": 0,
+      "alpha": 0.05
+    },
+    "settings": {
+      "llm": {
+        "provider": "stub",
+        "model": "stub-deterministic"
+      },
+      "embeddings": {
+        "provider": "hashing",
+        "dimension": 384
+      }
+    }
+  },
+  "settings": {
+    "environment": "development",
+    "data_mode": "offline",
+    "log_level": "INFO",
+    "log_json": false,
+    "evidence": {
+      "top_k": 10,
+      "window_minutes": 30,
+      "window_options": [
+        5,
+        15,
+        30,
+        60
+      ],
+      "post_alarm_minutes": 10,
+      "weights": {
+        "temporal": 0.15,
+        "resource": 0.0,
+        "anomaly": 0.3,
+        "semantic": 0.3,
+        "dependency": 0.3
+      },
+      "anomaly_method": "zscore",
+      "anomaly_threshold": 6.0,
+      "temporal_tau_before_minutes": 5.0,
+      "temporal_tau_after_minutes": 10.0,
+      "max_per_group": 2,
+      "group_member_ratio": 0.9,
+      "event_priors": {
+        "change": 0.7,
+        "api_error": 0.9,
+        "read_only": 0.0,
+        "error_log": 0.6,
+        "warning_log": 0.3,
+        "info_log": 0.05
+      }
+    },
+    "correlation": {
+      "max_link_gap_minutes": 10.0,
+      "max_link_hops": 3,
+      "min_anomaly_run_points": 2,
+      "onset_lookback_minutes": 15.0,
+      "max_candidate_causes": 5,
+      "signal_strength": {
+        "change": 1.0,
+        "api_error": 0.9,
+        "anomaly": 0.6,
+        "error_log": 0.5,
+        "warning_log": 0.3
+      }
+    },
+    "diagnosis": {
+      "review_confidence_threshold": 0.6,
+      "self_consistency_samples": 2,
+      "self_consistency_temperature": 0.7,
+      "context_token_budget": 6000,
+      "section_shares": {
+        "incident": 0.1,
+        "timeline": 0.15,
+        "anomalies": 0.2,
+        "logs": 0.2,
+        "cloudtrail": 0.15,
+        "graph": 0.08,
+        "historical": 0.12
+      },
+      "max_signals_per_section": 25,
+      "quote_tolerance": 0.01,
+      "reject_unsupported_claims": false,
+      "use_historical": true
+    },
+    "severity": {
+      "default_criticality": "MEDIUM",
+      "criticality_rules": [],
+      "resources_bounds": [
+        1.0,
+        2.0,
+        4.0
+      ],
+      "error_rate_bounds": [
+        0.01,
+        0.05,
+        0.25
+      ],
+      "duration_minutes_bounds": [
+        5.0,
+        15.0,
+        60.0
+      ],
+      "availability_loss_bounds": [
+        0.001,
+        0.01,
+        0.05
+      ],
+      "latency_ratio_bounds": [
+        2.0,
+        5.0
+      ],
+      "level_bounds": [
+        2,
+        5,
+        8
+      ],
+      "major_outage_fraction": 0.5
+    },
+    "redaction": {
+      "enabled": true,
+      "account_ids": true,
+      "arns": true,
+      "ips": true,
+      "principals": true,
+      "secrets": true,
+      "hostnames": true,
+      "resource_names": false,
+      "strict": true,
+      "bare_secret_keys": true,
+      "custom_patterns": []
+    },
+    "llm": {
+      "provider": "stub",
+      "model": "stub-deterministic",
+      "base_url": null,
+      "temperature": 0.0,
+      "max_output_tokens": 2048,
+      "seed": 0,
+      "timeout_seconds": 120.0,
+      "max_retries": 3,
+      "input_cost_per_1k": 0.0,
+      "output_cost_per_1k": 0.0
+    },
+    "embeddings": {
+      "provider": "hashing",
+      "model": "all-MiniLM-L6-v2",
+      "dimension": 384,
+      "base_url": null,
+      "batch_size": 64,
+      "timeout_seconds": 30.0
+    },
+    "vector_store": {
+      "backend": "faiss",
+      "path": null
+    },
+    "rag": {
+      "enabled": true,
+      "corpus_version": "historical-v1",
+      "corpus_seed": 7,
+      "index_name": "historical",
+      "candidates": 20,
+      "top_k": 3,
+      "min_score": 0.0,
+      "rerank": {
+        "similarity": 0.7,
+        "signals": 0.2,
+        "context": 0.1
+      }
+    },
+    "anomaly": {
+      "methods": [
+        "zscore",
+        "mad",
+        "moving_average",
+        "rolling_std",
+        "isolation_forest"
+      ],
+      "baseline_minutes": 30,
+      "min_history_points": 5,
+      "exclude_anomalies_from_baseline": true,
+      "floor_relative": 0.01,
+      "floor_absolute": 1e-06,
+      "zscore": {
+        "threshold": 3.0
+      },
+      "mad": {
+        "threshold": 3.5
+      },
+      "moving_average": {
+        "threshold": 0.5
+      },
+      "rolling_std": {
+        "threshold": 3.0,
+        "recent_points": 3
+      },
+      "isolation_forest": {
+        "threshold": 0.0,
+        "train_minutes": 30,
+        "min_train_points": 5,
+        "n_estimators": 100,
+        "random_state": 0
+      }
+    },
+    "aws": {
+      "region": "us-east-1",
+      "profile": null,
+      "max_attempts": 10,
+      "metrics_period_seconds": null,
+      "logs_max_events_per_group": 500,
+      "logs_filter_pattern": "?ERROR ?Error ?error ?FATAL ?Fatal ?Exception ?WARN ?Warn ?denied ?Denied ?timeout ?Timeout ?refused ?killed",
+      "logs_max_message_chars": 2000,
+      "cloudtrail_requests_per_second": 2.0,
+      "cloudtrail_ingestion_lag_minutes": 15,
+      "cloudtrail_include_read_only": false,
+      "config_enabled": true,
+      "cache_dir": null,
+      "cache_ttl_seconds": 3600
+    },
+    "api": {}
+  },
+  "source_sha": "91d4fce17dea0781",
+  "git_commit": "2a707224c0ad01c25f5c6bc8c071014637b3903e",
+  "versions": {
+    "python": "3.12.10",
+    "numpy": "2.5.3"
+  },
+  "records": 2150,
+  "results_sha256": "fd16e8c521770721231d24394f93c18214b69af705ba3939af5953a60ea3ce50",
+  "totals": {
+    "prompt_tokens": 7030938,
+    "completion_tokens": 1144265,
+    "cost_usd": 0.0
+  }
+}

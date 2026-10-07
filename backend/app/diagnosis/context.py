@@ -135,7 +135,8 @@ class ContextBuilder:
 
     @staticmethod
     def _ref(evd: str, e: CanonicalEvent, line: str) -> EvidenceRef:
-        nums = [float(x) for x in _NUMBER.findall(line.split(" ", 2)[2])]
+        # Hex ids like f7e821be contain "7e821", which parses as infinity: keep finite only.
+        nums = [v for x in _NUMBER.findall(line.split(" ", 2)[2]) if math.isfinite(v := float(x))]
         if e.value is not None:
             nums.append(float(e.value))
         if "threshold" in e.metadata:
@@ -296,6 +297,81 @@ class ContextBuilder:
             budget_tokens=st.context_token_budget,
             used_tokens=used,
         )
+
+    # ------------------------------------------------------------------ baselines (B2, B3)
+    def _baseline(
+        self, incident: IncidentRecord, events: list[CanonicalEvent], raw: bool
+    ) -> ContextBundle:
+        """B2 (`raw=False`): the incident section only. B3 (`raw=True`): plus raw telemetry
+        chosen newest-first until the same token budget is used, with no ranking, anomaly
+        annotations, chains, graph or history; selected lines are shown oldest-first per source
+        section. The onset shown is the alarm time (no anomaly detection) (DECISIONS D78)."""
+        st = self.settings
+        iid = incident.incident_id
+        index: dict[str, EvidenceRef] = {}
+
+        def item_for(e: CanonicalEvent, priority: tuple) -> _Item:
+            line = self._line(iid, e, None)
+            evd = make_evidence_id(iid, e.event_id)
+            index.setdefault(evd, self._ref(evd, e, line))
+            return _Item(line, priority, [evd])
+
+        items: dict[str, list[_Item]] = {name: [] for name in SECTION_ORDER}
+        head = [
+            f"Title: {incident.title}",
+            f"Description (symptoms only): {incident.description}",
+            f"Alarm time: {_iso(incident.alarm_time)}",
+            f"Affected resources: {', '.join(incident.affected_resources)}",
+            f"Collection window: {_iso(incident.window_start)} to {_iso(incident.window_end)}",
+        ]
+        items["incident"] = [_Item(t, (0, i, "")) for i, t in enumerate(head)]
+        for e in events:
+            if e.source == EventSource.ALARM and e.resource_id in incident.affected_resources:
+                items["incident"].append(item_for(e, (1, e.timestamp.timestamp(), e.event_id)))
+        if raw:
+            section = {
+                EventSource.CLOUDWATCH_METRIC: "anomalies",
+                EventSource.CLOUDWATCH_LOG: "logs",
+                EventSource.CLOUDTRAIL: "cloudtrail",
+                EventSource.AWS_CONFIG: "cloudtrail",
+            }
+            budget = st.context_token_budget - sum(i.tokens for i in items["incident"]) - 40
+            chosen, used = [], 0
+            newest = sorted(
+                (e for e in events if e.source in section),
+                key=lambda e: (e.timestamp, e.event_id),
+                reverse=True,
+            )
+            for e in newest:
+                it = item_for(e, (0, e.timestamp.timestamp(), e.event_id))
+                if used + it.tokens > budget:
+                    index.pop(it.evidence_ids[0], None)
+                    break
+                used += it.tokens
+                chosen.append((e, it))
+            for e, it in chosen:
+                items[section[e.source]].append(it)
+        present = [n for n in SECTION_ORDER if items[n]]
+        text, stats, used_tokens = self._fit(present, items, None)
+        index = {k: v for k, v in index.items() if f"[{k}]" in text}
+        resources = set(incident.affected_resources) | {r.resource_id for r in index.values()}
+        return ContextBundle(
+            incident_id=iid,
+            text=text,
+            sections=stats,
+            evidence_index=index,
+            resources=sorted(resources),
+            budget_tokens=st.context_token_budget,
+            used_tokens=used_tokens,
+        )
+
+    def build_raw(self, *, incident: IncidentRecord, events: list[CanonicalEvent]) -> ContextBundle:
+        return self._baseline(incident, events, raw=True)
+
+    def build_description(
+        self, *, incident: IncidentRecord, events: list[CanonicalEvent]
+    ) -> ContextBundle:
+        return self._baseline(incident, events, raw=False)
 
     # ------------------------------------------------------------------ budget
     def _fit(self, present: list[str], items: dict[str, list[_Item]], retrieved):
