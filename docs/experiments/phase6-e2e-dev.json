@@ -1,0 +1,104 @@
+{
+  "meta": {
+    "label": "smoke-test / synthetic",
+    "split": "dev",
+    "dataset_version": "synthetic-v1",
+    "content_sha256": "06cec245b951be8e9b08524367439b5ee3d37fa75d6551d3bb8e2922d8388f8b",
+    "model": "stub-deterministic-v1",
+    "prompt_version": "diag-v1",
+    "prompt_sha": "9df947fcdc3580a0",
+    "embedder": "hashing-v1-384",
+    "self_consistency_samples": 3,
+    "context_token_budget": 6000
+  },
+  "conditions": [
+    {
+      "condition": "Full",
+      "incidents": 86,
+      "valid": 86,
+      "repaired": 0,
+      "rejected": 0,
+      "mean_citations": 2.93,
+      "unsupported_citation_rate": 0.0,
+      "requires_review": 11,
+      "historical_used": 83,
+      "mean_context_tokens": 2406,
+      "items_dropped_by_budget": 0,
+      "mean_self_consistency": 0.984,
+      "stub_label_agreement_NOT_A_RESULT": 0.965
+    },
+    {
+      "condition": "A1 no RAG",
+      "incidents": 86,
+      "valid": 86,
+      "repaired": 0,
+      "rejected": 0,
+      "mean_citations": 2.93,
+      "unsupported_citation_rate": 0.0,
+      "requires_review": 11,
+      "historical_used": 0,
+      "mean_context_tokens": 1451,
+      "items_dropped_by_budget": 0,
+      "mean_self_consistency": null,
+      "stub_label_agreement_NOT_A_RESULT": 0.965
+    },
+    {
+      "condition": "A2 no graph",
+      "incidents": 86,
+      "valid": 86,
+      "repaired": 0,
+      "rejected": 0,
+      "mean_citations": 2.91,
+      "unsupported_citation_rate": 0.0,
+      "requires_review": 14,
+      "historical_used": 80,
+      "mean_context_tokens": 1925,
+      "items_dropped_by_budget": 0,
+      "mean_self_consistency": null,
+      "stub_label_agreement_NOT_A_RESULT": 0.93
+    },
+    {
+      "condition": "A3 no anomaly detection",
+      "incidents": 86,
+      "valid": 86,
+      "repaired": 0,
+      "rejected": 0,
+      "mean_citations": 2.87,
+      "unsupported_citation_rate": 0.0,
+      "requires_review": 5,
+      "historical_used": 82,
+      "mean_context_tokens": 2076,
+      "items_dropped_by_budget": 0,
+      "mean_self_consistency": null,
+      "stub_label_agreement_NOT_A_RESULT": 0.988
+    },
+    {
+      "condition": "A4 no chains",
+      "incidents": 86,
+      "valid": 86,
+      "repaired": 0,
+      "rejected": 0,
+      "mean_citations": 2.74,
+      "unsupported_citation_rate": 0.0,
+      "requires_review": 20,
+      "historical_used": 70,
+      "mean_context_tokens": 1645,
+      "items_dropped_by_budget": 0,
+      "mean_self_consistency": null,
+      "stub_label_agreement_NOT_A_RESULT": 0.767
+    }
+  ],
+  "severity": {
+    "levels": {
+      "CRITICAL": 24,
+      "HIGH": 47,
+      "LOW": 2,
+      "MEDIUM": 13
+    },
+    "advisory_matches_engine": 43,
+    "valid_diagnoses": 86,
+    "factors_unknown": {
+      "error_rate": 1
+    }
+  }
+}

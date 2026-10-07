@@ -45,8 +45,26 @@ correlation:
   signal_strength: {change: 1.0, api_error: 0.9, anomaly: 0.6, error_log: 0.5, warning_log: 0.3}
 
 diagnosis:
-  review_confidence_threshold: 0.6   # below this => requires_human_review
-  self_consistency_samples: 5
+  review_confidence_threshold: 0.6   # below this => requires_human_review (applied as policy)
+  self_consistency_samples: 5        # extra samples besides the primary answer; 0 disables
+  self_consistency_temperature: 0.7
+  context_token_budget: 6000         # approximate tokens (chars / 4) for the context sections
+  section_shares: {incident: 0.10, timeline: 0.15, anomalies: 0.20, logs: 0.20, cloudtrail: 0.15, graph: 0.08, historical: 0.12}
+  max_signals_per_section: 25
+  quote_tolerance: 0.01              # relative tolerance for numbers quoted in FACT explanations
+  use_historical: true
+
+severity:
+  # Deterministic engine; the LLM's severity_suggestion is advisory only.
+  default_criticality: MEDIUM
+  criticality_rules: []              # e.g. - {match: '^alb/prod-', level: CRITICAL}
+  resources_bounds: [1, 2, 4]        # points = number of bounds the value exceeds (max 3)
+  error_rate_bounds: [0.01, 0.05, 0.25]
+  duration_minutes_bounds: [5, 15, 60]
+  availability_loss_bounds: [0.001, 0.01, 0.05]
+  latency_ratio_bounds: [2.0, 5.0]
+  level_bounds: [2, 5, 8]            # total <= 2 LOW, <= 5 MEDIUM, <= 8 HIGH, else CRITICAL
+  major_outage_fraction: 0.5         # error rate or capacity loss >= this => at least HIGH
 
 redaction:
   enabled: true          # applied before ANY external LLM or embedding call (app/ai/redaction.py)
@@ -65,7 +83,14 @@ redaction:
 llm:
   provider: stub            # stub (LOCAL-ONLY) | openai_compatible | gemini
   model: stub-deterministic
-  base_url: null
+  base_url: null            # OpenAI-compatible endpoint (OpenAI, gateways, vLLM, Ollama)
+  temperature: 0.0          # primary answer; samples use diagnosis.self_consistency_temperature
+  max_output_tokens: 2048
+  seed: 0
+  timeout_seconds: 120
+  max_retries: 3            # 408/409/429/5xx and network errors, exponential backoff
+  input_cost_per_1k: 0.0    # USD per 1,000 tokens for the cost estimate; set for your model
+  output_cost_per_1k: 0.0
   # API keys come from env only (CLOUDDIAG_LLM__API_KEY); never put them in this file.
 
 embeddings:

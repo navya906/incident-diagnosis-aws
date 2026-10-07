@@ -318,7 +318,7 @@ def test_offline_mode_allows_disabling_redaction_but_aws_mode_does_not():
 
 
 # ------------------------------------------------------------------ (4) construction guard
-LOCAL_ALLOWLIST = {"HashingEmbedder", "SentenceTransformerEmbedder"}
+LOCAL_ALLOWLIST = {"HashingEmbedder", "SentenceTransformerEmbedder", "StubLLM"}
 WRAPPERS = {"RedactingLLMClient", "RedactingEmbedder"}
 
 
