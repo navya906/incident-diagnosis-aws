@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 
 from pydantic import BaseModel, Field
 
+from app.interfaces._guard import GuardedMeta
+
 
 class LLMRequest(BaseModel):
     system: str = ""
@@ -22,8 +24,12 @@ class LLMResponse(BaseModel):
     extra: dict = Field(default_factory=dict)
 
 
-class LLMClient(ABC):
+class LLMClient(ABC, metaclass=GuardedMeta):
     """OpenAI-compatible, Gemini, and the deterministic LOCAL-ONLY stub implement this."""
+
+    #: True when calls send data outside this process. External implementations can only be
+    #: created through `app.ai.clients` (wrapped in redaction); in-process ones set False.
+    is_external: bool = True
 
     @property
     @abstractmethod

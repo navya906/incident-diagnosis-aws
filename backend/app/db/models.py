@@ -12,6 +12,7 @@ from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, Stri
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
+from app.db.types import VectorType
 
 
 class Incident(Base):
@@ -160,3 +161,25 @@ class ExperimentResult(Base):
     diagnosis: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     ground_truth: Mapped[dict[str, Any]] = mapped_column(JSON)
     metrics: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+
+
+class VectorIndexRecord(Base):
+    """One vector index; its embedding model and dimension are fixed at creation (Phase 5)."""
+
+    __tablename__ = "vector_indexes"
+
+    name: Mapped[str] = mapped_column(String(128), primary_key=True)
+    model_name: Mapped[str] = mapped_column(String(256))
+    dimension: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class VectorItemRecord(Base):
+    __tablename__ = "vector_items"
+
+    index_name: Mapped[str] = mapped_column(
+        String(128), ForeignKey("vector_indexes.name"), primary_key=True
+    )
+    item_id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    embedding: Mapped[list[float]] = mapped_column(VectorType)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)

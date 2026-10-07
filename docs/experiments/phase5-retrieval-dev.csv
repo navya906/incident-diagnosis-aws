@@ -1,0 +1,9 @@
+knowledge_base,query,ranking,label@1,label@3,mrr@10,mean_top1_similarity,query_returned_itself,queries
+corpus,description + evidence,cosine,0.963,0.988,0.978,0.606,0,82
+corpus,description + evidence,re-ranked,0.963,0.988,0.977,0.605,0,82
+corpus,description only,cosine,0.585,0.622,0.665,0.679,0,82
+corpus,description only,re-ranked,0.598,0.634,0.677,0.677,0,82
+leave-one-out dev,description + evidence,cosine,0.951,0.976,0.968,0.615,0,82
+leave-one-out dev,description + evidence,re-ranked,0.939,0.963,0.959,0.612,0,82
+leave-one-out dev,description only,cosine,0.585,0.671,0.65,0.689,0,82
+leave-one-out dev,description only,re-ranked,0.585,0.683,0.655,0.686,0,82

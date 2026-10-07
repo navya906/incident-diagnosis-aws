@@ -1,0 +1,126 @@
+{
+  "meta": {
+    "label": "smoke-test / synthetic",
+    "split": "dev",
+    "dataset_version": "synthetic-v1",
+    "content_sha256": "06cec245b951be8e9b08524367439b5ee3d37fa75d6551d3bb8e2922d8388f8b",
+    "corpus_version": "historical-v1",
+    "corpus_seed": 7,
+    "corpus_size": 40,
+    "embedder": "hashing-v1-384",
+    "embedder_dimension": 384,
+    "rag_config": {
+      "enabled": true,
+      "corpus_version": "historical-v1",
+      "corpus_seed": 7,
+      "index_name": "historical",
+      "candidates": 20,
+      "top_k": 3,
+      "min_score": 0.0,
+      "rerank": {
+        "similarity": 0.7,
+        "signals": 0.2,
+        "context": 0.1
+      }
+    },
+    "majority_label_rate": 0.1
+  },
+  "leakage": {
+    "test_incidents": 38,
+    "test_fingerprints": 32944,
+    "corpus_indexed": 40,
+    "test_ids_in_corpus_index": 0,
+    "test_ids_in_loo_index": 0,
+    "fingerprint_overlap_corpus": 0
+  },
+  "results": [
+    {
+      "knowledge_base": "corpus",
+      "query": "description + evidence",
+      "ranking": "cosine",
+      "label@1": 0.963,
+      "label@3": 0.988,
+      "mrr@10": 0.978,
+      "mean_top1_similarity": 0.606,
+      "query_returned_itself": 0,
+      "queries": 82
+    },
+    {
+      "knowledge_base": "corpus",
+      "query": "description + evidence",
+      "ranking": "re-ranked",
+      "label@1": 0.963,
+      "label@3": 0.988,
+      "mrr@10": 0.977,
+      "mean_top1_similarity": 0.605,
+      "query_returned_itself": 0,
+      "queries": 82
+    },
+    {
+      "knowledge_base": "corpus",
+      "query": "description only",
+      "ranking": "cosine",
+      "label@1": 0.585,
+      "label@3": 0.622,
+      "mrr@10": 0.665,
+      "mean_top1_similarity": 0.679,
+      "query_returned_itself": 0,
+      "queries": 82
+    },
+    {
+      "knowledge_base": "corpus",
+      "query": "description only",
+      "ranking": "re-ranked",
+      "label@1": 0.598,
+      "label@3": 0.634,
+      "mrr@10": 0.677,
+      "mean_top1_similarity": 0.677,
+      "query_returned_itself": 0,
+      "queries": 82
+    },
+    {
+      "knowledge_base": "leave-one-out dev",
+      "query": "description + evidence",
+      "ranking": "cosine",
+      "label@1": 0.951,
+      "label@3": 0.976,
+      "mrr@10": 0.968,
+      "mean_top1_similarity": 0.615,
+      "query_returned_itself": 0,
+      "queries": 82
+    },
+    {
+      "knowledge_base": "leave-one-out dev",
+      "query": "description + evidence",
+      "ranking": "re-ranked",
+      "label@1": 0.939,
+      "label@3": 0.963,
+      "mrr@10": 0.959,
+      "mean_top1_similarity": 0.612,
+      "query_returned_itself": 0,
+      "queries": 82
+    },
+    {
+      "knowledge_base": "leave-one-out dev",
+      "query": "description only",
+      "ranking": "cosine",
+      "label@1": 0.585,
+      "label@3": 0.671,
+      "mrr@10": 0.65,
+      "mean_top1_similarity": 0.689,
+      "query_returned_itself": 0,
+      "queries": 82
+    },
+    {
+      "knowledge_base": "leave-one-out dev",
+      "query": "description only",
+      "ranking": "re-ranked",
+      "label@1": 0.585,
+      "label@3": 0.683,
+      "mrr@10": 0.655,
+      "mean_top1_similarity": 0.686,
+      "query_returned_itself": 0,
+      "queries": 82
+    }
+  ]
+}

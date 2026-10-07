@@ -615,7 +615,8 @@ def test_iam_policy_covers_every_api_call_and_is_read_only():
 def test_no_credentials_in_source():
     key = re.compile(r"AKIA[0-9A-Z]{16}")
     secret = re.compile(r"aws_secret_access_key\s*[=:]\s*['\"]?[A-Za-z0-9/+]{40}", re.I)
-    skip = {".git", ".venv", "node_modules", ".pytest_tmp", "data", "__pycache__", ".ruff_cache"}
+    skip = {".git", ".venv", "node_modules", ".pytest_tmp", ".pytest_cache", "data", "__pycache__"}
+    skip.add(".ruff_cache")
     hits = []
     for path in REPO.rglob("*"):
         if path.is_dir() or skip & set(path.relative_to(REPO).parts):
@@ -644,7 +645,38 @@ def test_no_credentials_in_source():
     assert not hits
 
 
-def test_capture_cli_writes_replayable_observable_scenario(aws, tmp_path, monkeypatch):
+@pytest.fixture
+def aws_mode(monkeypatch):
+    from app.config import get_settings
+
+    monkeypatch.setenv("CLOUDDIAG_DATA_MODE", "aws")
+    get_settings.cache_clear()
+    yield
+    get_settings.cache_clear()
+
+
+def test_capture_cli_refuses_outside_aws_mode_or_with_weak_redaction(tmp_path, monkeypatch):
+    from app.collectors import capture
+    from app.config import get_settings
+
+    argv = ["--seed-arn", "arn:aws:x", "--start", "2025-01-01T00:00:00+00:00"]
+    argv += ["--end", "2025-01-01T01:00:00+00:00", "--title", "t", "--description", "d"]
+    argv += ["--out", str(tmp_path)]
+    get_settings.cache_clear()
+    with pytest.raises(SystemExit):
+        capture.main(argv)  # offline mode: no real data may enter
+    monkeypatch.setenv("CLOUDDIAG_DATA_MODE", "aws")
+    monkeypatch.setenv("CLOUDDIAG_REDACTION__IPS", "false")
+    get_settings.cache_clear()
+    try:
+        with pytest.raises(SystemExit):
+            capture.main(argv)  # aws mode with a weakened policy: fail closed
+    finally:
+        get_settings.cache_clear()
+    assert not list(tmp_path.iterdir())
+
+
+def test_capture_cli_writes_replayable_observable_scenario(aws, aws_mode, tmp_path, monkeypatch):
     from app.collectors import capture
     from app.offline.models import ObservableScenario
 
