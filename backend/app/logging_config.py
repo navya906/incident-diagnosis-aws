@@ -15,8 +15,26 @@ _SECRET_PATTERNS = [
 ]
 
 
+_BEARER = re.compile(r"(?i)\b(bearer|basic)\s+[A-Za-z0-9._~+/=-]{8,}")
+_X_API_KEY = re.compile(r"(?i)(x-api-key['\"]?\s*[:=]\s*['\"]?)([^\s'\",}]+)")
+#: Exact secret values the process knows (API keys); always replaced (D94).
+_KNOWN: set[str] = set()
+
+
+def register_secret(value: str) -> None:
+    """Make `scrub` replace this exact value wherever it appears (e.g. configured API keys)."""
+    if value and len(value) >= 6:
+        _KNOWN.add(value)
+
+
 def scrub(text: str) -> str:
+    for value in sorted(_KNOWN, key=len, reverse=True):
+        if value in text:
+            text = text.replace(value, "***")
+    # Bearer/Basic first: otherwise "Authorization: Bearer <token>" only loses the word Bearer.
+    text = _BEARER.sub(lambda m: f"{m.group(1)} ***", text)
     text = _SECRET_PATTERNS[0].sub(lambda m: f"{m.group(1)}{m.group(2)}***", text)
+    text = _X_API_KEY.sub(lambda m: f"{m.group(1)}***", text)
     return _SECRET_PATTERNS[1].sub("AKIA****************", text)
 
 

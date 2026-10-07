@@ -16,6 +16,7 @@ dependencies = [
   "pandas",
   "scikit-learn",
   "networkx",
+  "cryptography>=42",  # SNS webhook signature verification (Phase 8)
 ]
 
 [project.optional-dependencies]
@@ -41,3 +42,7 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.ruff.lint.isort]
 known-third-party = ["alembic"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI parameter declarations are evaluated once by design.
+extend-immutable-calls = ["fastapi.Query", "fastapi.Depends", "fastapi.Body"]

@@ -5,7 +5,7 @@ telemetry, reasoning over AWS dependencies, retrieving similar past incidents, a
 structured, evidence-cited root-cause diagnosis, then measuring honestly whether each component helps.
 
 > Read `BRIEF.md` (the spec), `PROGRESS.md` (where we are) and `DECISIONS.md` (why things are the way
-> they are) **before** you touch anything. Current status: **Phases 0 to 7 done**, gates passed.
+> they are) **before** you touch anything. Current status: **Phases 0 to 8 done**, gates passed.
 
 ## 1. Requirements
 
@@ -70,6 +70,7 @@ Run from `backend/` with the venv active.
 | Run an experiment (condition matrix) | `python -m app.experiments run --config ../experiments/smoke-dev.yaml` (test split: `--split test --final`; real LLMs: `docs/experiments/RUNBOOK.md`) |
 | Reproduce / list experiments | `python -m app.experiments verify <experiment id>`, `python -m app.experiments list` |
 | Plan calls and cost before a run | `python -m app.experiments plan --config ../experiments/real-test-openai.yaml` |
+| Run the API locally | `CLOUDDIAG_API__API_KEYS='["dev-key-change-me"]' uvicorn app.main:app --reload` then `curl -H 'X-API-Key: dev-key-change-me' localhost:8000/api/incidents` (reference: `docs/api.md`) |
 | Audit the citation verifier (injected faults, dev) | `python -m app.evaluation.verifier_audit` (writes `docs/experiments/`) |
 | Fault-injection plan (dry run) | `python -m app.offline.fault_injection --stack <name> --fault <fault>` |
 | Run API locally (needs a DB, or SQLite URL) | `uvicorn app.main:app --reload` |
@@ -123,6 +124,8 @@ backend/
     diagnosis/    Phase 6: context builder, versioned prompts, validator + repair,
                   citation verifier, self-consistency, DiagnosisEngine
     severity/     Phase 6: deterministic severity engine
+    api/          Phase 8: REST routes, alarm webhook (SNS/EventBridge), lifecycle,
+                  async diagnosis jobs, API keys, rate limiting, audit
     experiments/  Phase 7: YAML experiment configs, condition matrix, runner, CLI,
                   reproducible experiment ids
     rag/          Phase 5: embedders, vector stores (FAISS/NumPy, pgvector), historical corpus,

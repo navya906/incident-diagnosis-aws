@@ -296,8 +296,36 @@ Known limits:
 - The rubric score is a deterministic proxy; the LLM-judge rubric and the human spot check are manual steps for real runs.
 - The unsupported-claim check is lexical: false claims that reuse words from the cited line pass (4/86 in the audit); semantic support needs the LLM judge.
 
-## Next: Phase 8 (backend API, lifecycle, security)
-REST endpoints, CloudWatch Alarm -> SNS/EventBridge ingestion webhook, async diagnosis jobs, incident lifecycle with transition timestamps and time-to-detect/diagnose/resolve, API-key auth, rate limiting, input validation, audit logging, secret filtering; persist incidents, events, evidence and diagnoses. Gate: API tests for all endpoints, lifecycle transition tests, security tests.
+## Phase 8: Backend API, lifecycle, security — implemented, gate PASSED
+
+Branch: `phase8/api` (from `main` after the Phase 7 merge, PR #8). API reference: `docs/api.md`.
+
+Built:
+- `app/api/routes.py`: 22 REST routes under `/api`: incidents (create, list, detail, lifecycle transitions); telemetry in (events, inventory, offline import); telemetry out (events search, logs, CloudTrail/Config, metric series with anomaly flags, timeline, dependency graph, ranked evidence); async diagnosis (start job, job status, diagnoses, latest diagnosis); lifecycle metrics; audit log; experiment summaries. The original spec is not in the repository, so the endpoint set was derived from the data model and the Phase 9 pages (D91).
+- `app/api/alarms.py`: alarm-ingestion webhook on `POST /api/incidents` for SNS notifications (signature verification v1/v2, certificate only from `sns.<region>.amazonaws.com`, optional topic allowlist, subscription messages verified but never auto-confirmed) and EventBridge "CloudWatch Alarm State Change" events. Only transitions into ALARM open incidents; dimensions map to canonical resource ids; repeated alarms deduplicate into the open incident (D95).
+- `app/api/lifecycle.py`: DETECTED -> INVESTIGATING -> DIAGNOSED -> MITIGATING -> RESOLVED -> CLOSED with an explicit transition table, reopen paths, a note required to close an unresolved incident, transition rows with timestamps and actors, per-incident time to detect/diagnose/resolve and their means (D92, D93).
+- `app/api/jobs.py`: async diagnosis jobs on a thread pool (PENDING/RUNNING/SUCCEEDED/FAILED); jobs move the incident to INVESTIGATING and DIAGNOSED, persist anomalies, ranked evidence, the diagnosis and the deterministic severity, and record the onset; interrupted jobs are failed at start-up; retrieval falls back with a recorded note when the knowledge base cannot be built (D97).
+- `app/api/security.py` + `app/main.py`: API keys (`X-API-Key` or HTTP Basic password, constant-time comparison, keys from env only, fail closed without keys, `auth_disabled` refused in aws mode); per-client token-bucket rate limiting (per IP for failed attempts); body size limit; audit middleware (all changes and all denials, actor = key hash or IP); error handlers that never echo inputs or internals (D94, D96).
+- `app/api/service.py`, `app/api/schemas.py`: persistence (incidents, events with contract checks, inventory, anomalies, evidence, diagnoses), strict request models, secret filtering of event text in responses.
+- `app/logging_config.py`: configured keys are scrubbed from every log line; bearer/basic tokens and `x-api-key` values too. Bug fixed: `Authorization: Bearer <token>` used to lose only the word "Bearer" (D94).
+- DB: migration `0003` (incident lifecycle columns; `incident_transitions`, `diagnosis_jobs`, `audit_log`), verified on PostgreSQL 16 (upgrade, empty model diff, downgrade, upgrade).
+- Config: `api` section extended; `cryptography` is now a base dependency (SNS signatures).
+
+Gate status:
+- [x] API tests for all endpoints (`tests/test_api.py`): create/list/get/dedup, validation (9 bad inputs), events/inventory ingest, offline import, every read view, async diagnosis end to end (job -> INVESTIGATING -> DIAGNOSED, diagnosis with severity and citations, ranked evidence, anomalies on metrics), job failures, interrupted-job recovery, experiments; route coverage is checked against the OpenAPI schema so a new route without a test fails.
+- [x] Lifecycle transition tests: full path with reopen, illegal moves (409), closing without a note, terminal CLOSED, transition timestamps and actors, exact timings and aggregate means.
+- [x] Security tests: every `/api` route returns 401 without a key, with a wrong key and with wrong Basic auth; fail closed without keys; `auth_disabled` refused in aws mode; per-key and per-IP rate limits with Retry-After; body and batch limits; audit of changes and denials without keys; no secret leakage in logs (keys, bearer tokens, passwords), in responses (event text, validation errors, 500s) or in job errors; SNS signatures (valid v1/v2, tampered, unsigned, foreign certificate host, wrong topic).
+- [x] `pytest` 358 passed, 1 skipped; `ruff check` and `ruff format --check` clean.
+
+Known limits:
+- One role only (every key can do everything); multi-user roles are out of scope until Phase 10 (BRIEF).
+- Rate limits and the job queue are in-process: several API replicas need a shared limiter and queue (e.g. Redis).
+- Diagnosis jobs use stored telemetry: real incidents need the capture CLI plus `POST /events` and `/inventory`; the API does not call AWS collectors itself.
+- `/docs` and `/openapi.json` are public (schema only, no data).
+- Timings use the incident's creation time for diagnose/resolve, so imported historical incidents measure time since import, not since the original alarm (D93).
+
+## Next: Phase 9 (frontend)
+React + Vite + TypeScript + Tailwind + Recharts + React Flow: incident overview, interactive timeline, metrics charts, searchable logs, CloudTrail view, dependency graph, diagnosis page (root cause -> evidence -> timeline -> resource -> dependency path, FACT/INFERENCE/HYPOTHESIS/RECOMMENDATION labels, contradicting evidence, alternatives), all against the Phase 8 API. Gate: typecheck + build, component tests, scripted end-to-end walk-through on offline data.
 
 Phase 7 carry-over (D71), done: the knowledge-base conditions are in the matrix; besides B1-B4, Full and A1-A5, evaluate RAG with (a) the query's fault type removed from the knowledge base and (b) distractor entries that share alarm metric, topology and wording but differ in root cause; report accuracy, `historical_influence` declarations and `validate_historical_influence` failures for Full vs A1 under each.
 

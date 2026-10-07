@@ -20,6 +20,9 @@ EXPECTED_TABLES = {
     "experiment_results",
     "vector_indexes",
     "vector_items",
+    "incident_transitions",
+    "diagnosis_jobs",
+    "audit_log",
 }
 
 

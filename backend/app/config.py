@@ -314,7 +314,29 @@ class AwsSettings(BaseModel):
 
 
 class ApiSettings(BaseModel):
+    """REST API (Phase 8). Keys come from env only: CLOUDDIAG_API__API_KEYS='["k1","k2"]'."""
+
     api_keys: list[SecretStr] = Field(default_factory=list)
+    #: Local development only; refused in aws mode. Without keys and without this flag every
+    #: /api request is rejected (fail closed).
+    auth_disabled: bool = False
+    rate_limit_per_minute: int = Field(default=120, ge=1)
+    rate_limit_burst: int = Field(default=30, ge=1)
+    max_body_bytes: int = Field(default=2_000_000, ge=1024)
+    max_events_per_request: int = Field(default=5000, ge=1)
+    job_workers: int = Field(default=2, ge=1)
+    #: SNS webhook: verify message signatures (certificate from sns.*.amazonaws.com only).
+    verify_sns_signature: bool = True
+    #: Only alarms from these SNS topics are accepted (empty = any topic).
+    allowed_sns_topic_arns: list[str] = Field(default_factory=list)
+    #: Window collected around an alarm when the payload does not give one.
+    window_before_minutes: int = Field(default=60, ge=1)
+    window_after_minutes: int = Field(default=30, ge=0)
+    #: Strip secrets (key=value, tokens, private keys) from event text in API responses.
+    redact_secrets_in_responses: bool = True
+    #: Offline dataset and corpus used by imports and diagnosis jobs (None = repo defaults).
+    dataset_dir: str | None = None
+    corpus_dir: str | None = None
 
 
 class Settings(BaseSettings):
