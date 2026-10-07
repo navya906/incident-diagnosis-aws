@@ -169,6 +169,14 @@ RQ6 experiments: sweep K ∈ {5, 10, 20, 40}, time window ∈ {5, 15, 30, 60 min
 | 9 Frontend | Implemented, gate passed (typecheck + build, component tests, scripted end-to-end walk-through on offline data; Docker stack verified). |
 | 10 Hardening, Docker, docs, verification | Implemented, gate passed (fresh clone -> `docker compose up` -> offline demo diagnosis in the UI; 255 unit / 164 integration / 8 e2e tests; docs checked by tests; numbers traceable to `exp-`/`rpt-` ids). |
 
+Remaining work after Phase 10 (kept in sync with PROGRESS.md, "Next: remaining work"):
+1. **Bug: browser sign-in pop-up on a wrong API key.** On a refused key, `app/main.py` (the `actor is None` branch of the auth middleware) answers 401 with `WWW-Authenticate: Basic realm="api"`, so Chrome shows its own Username/Password dialog over the UI. The header is needed for SNS HTTPS subscriptions (they send credentials only after a Basic challenge), but not for the UI, which always sends `X-API-Key`. Fix: send the challenge only when the request has no `X-API-Key` header; add a test in `tests/test_api.py` (refused `X-API-Key` -> no `WWW-Authenticate`; no credentials -> challenge kept) and a Playwright assertion that a wrong key shows the in-page error without a dialog. Workaround until then: Cancel, "Forget API key", enter the right key.
+2. **Real-LLM experiments** on the test split with at least two model families, N >= 3 runs per condition, LLM judge from a different family and the human spot check (`docs/experiments/RUNBOOK.md`; dev pilot first). This is the only way to answer RQ1-RQ5; every current number is smoke-test / synthetic.
+3. **Real incidents:** deploy the test stack (`infra/test-stack/`), inject faults, capture with `app.collectors.capture`, write ground truth by hand, and re-check the dev-tuned settings (D55) on them. The collectors, the stack and the fault-injection tool have never run against a real AWS account.
+4. **Component upgrades** (`docs/future-work.md` section 3-4): semantic evidence scoring and a semantic embedder for retrieval (re-tuned on dev), semantic citation checking, a prompt-injection test set.
+5. **Operations:** shared job queue and rate limiter for several API replicas; collect telemetry from the API after the CloudTrail lag instead of the capture CLI; service metrics; chart downsampling; an accessibility audit.
+6. **Stretch features** in BRIEF order: conversational assistant (cited answers from stored context only), graph database backend, remediation with explicit human approval, multi-user accounts and roles.
+
 Amendments (details in DECISIONS.md):
 - Python target is `>=3.11` (dev machine runs 3.12; Docker image uses 3.11).
 - Extra contracts were added so interfaces are typed: `MetricSeries`/`Anomaly`, `ScoreWeights`/`EvidenceItem`, `CollectionRequest`.
