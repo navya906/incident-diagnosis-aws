@@ -1,0 +1,39 @@
+# Production override (docs/deployment.md):
+#
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Required in the environment or .env: POSTGRES_PASSWORD and CLOUDDIAG_API__API_KEYS (JSON list,
+# keys >= 16 characters, never the demo key; the API refuses to start otherwise, D108).
+# Only the frontend (nginx) is published; put a TLS-terminating proxy or load balancer in front.
+services:
+  db:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    ports: !reset []
+    restart: unless-stopped
+    security_opt: ["no-new-privileges:true"]
+
+  api:
+    environment:
+      CLOUDDIAG_ENVIRONMENT: production
+      CLOUDDIAG_LOG_JSON: "true"
+      CLOUDDIAG_DATABASE_URL: postgresql+psycopg://clouddiag:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@db:5432/clouddiag
+      CLOUDDIAG_API__API_KEYS: ${CLOUDDIAG_API__API_KEYS:?set CLOUDDIAG_API__API_KEYS}
+      # The api port is not published, so only nginx on the compose network can reach it and
+      # its X-Forwarded-For (overwritten with the real client address) can be trusted.
+      FORWARDED_ALLOW_IPS: "*"
+    ports: !reset []
+    restart: unless-stopped
+    read_only: true
+    tmpfs: ["/tmp"]
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+
+  frontend:
+    ports: !override
+      - "${FRONTEND_PORT:-8080}:8080"
+    restart: unless-stopped
+    read_only: true
+    tmpfs: ["/tmp"]
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]

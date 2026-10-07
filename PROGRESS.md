@@ -358,8 +358,40 @@ Known limits:
 - Charts use Recharts' SVG rendering; very long windows with 1 s data would need downsampling.
 - Accessibility was considered (labels, roles, a text list of graph roles) but not audited.
 
-## Next: Phase 10 (hardening, Docker, documentation, final verification)
-Production Docker configs; offline quickstart that works without AWS credentials (dataset in the image, demo key flow); test counts (>=30 unit / >=10 integration / >=5 end-to-end); docs (README, architecture, API, DB schema, AWS setup, AI architecture, evaluation and experiment methodology, security, deployment, known limitations, future work); gate: fresh clone -> `docker compose up` -> offline demo diagnosis in the UI, full suite green, numbers traceable to experiment ids.
+## Phase 10: Hardening, Docker, documentation, final verification — implemented, gate PASSED
+
+Branch: `phase10/hardening-docs` (from `main` after PR #11). Docs index: README "Documentation"; results: `docs/evaluation.md`.
+
+Built:
+- Docker (D108): the API image generates the dataset and the historical corpus at build time and runs as a non-root user; root `.dockerignore` (the build used to copy `backend/.venv` into the image); frontend on `nginx-unprivileged` with CSP, `Permissions-Policy` and the other headers on every response, `X-Forwarded-For` overwritten. `docker-compose.yml` is the offline quickstart (stub LLM, hashing embedder, demo key, localhost-only ports); `docker-compose.prod.yml` requires `POSTGRES_PASSWORD` and API keys, publishes only nginx, runs read-only with all capabilities dropped. Production and aws mode refuse the demo key, keys under 16 characters and disabled auth.
+- `scripts/quickstart_check.py` (stdlib only): health, auth, offline import without ground truth, diagnosis job, every citation resolves to a stored event, every view, lifecycle to CLOSED; rerunnable against a persistent stack.
+- Reproducibility (D107): the results hash leaves out each record's experiment id, so `verify` reports a code change as a note and only different results as a failure. Found because `verify exp-fbeacbc7cd9b` failed after Phases 8-9 although every result was identical; it now reproduces under the Phase 10 code.
+- Report ids (D110): the five component reports carry content-addressed `rpt-` ids (`python -m app.evaluation.provenance check`); all five were re-run under the Phase 10 code and were identical apart from the new id line.
+- Tests (D109): `unit` / `integration` / `e2e` markers assigned and checked in `conftest.py`, counts printed by pytest; `tests/test_e2e_http.py` (quickstart flow, alarm webhook, auth/rate limit/audit against a separately started demo server); Playwright specs for API-key handling, the evidence rule on an insufficient-evidence incident, the lifecycle close rule and deep links, besides the walk-through; Playwright can target any running stack (`E2E_BASE_URL`); `tests/test_docs.py` (required docs, the four required limitations, every route and table column documented, links resolve, cited ids exist).
+- Docs (D112): `architecture.md`, `ai-architecture.md`, `evaluation.md`, `db-schema.md`, `security.md`, `deployment.md`, `known-limitations.md`, `future-work.md`, `testing.md`; `api.md` updated; README starts with the quickstart and indexes everything.
+- CI: `reproducibility` job (report ids; `verify` of the experiment cited in `docs/evaluation.md`) and `docker` job (fresh build, quickstart check through nginx, production override refuses the demo key).
+- Final smoke matrix `exp-7e89b5a0473d` (dev, stub): results identical to Phase 7's `exp-fbeacbc7cd9b` (summary, comparisons, strata and per-record CSV unchanged); only the id changed with the code.
+
+Found and fixed during the phase:
+- The UI stayed on "Loading" with "rate limit exceeded" when the per-key burst ran out (five e2e specs on one key); the client now waits for `Retry-After` and retries (D111).
+- `GET /api/offline/incidents` (Phase 9) was missing from `docs/api.md` (found by the new docs test).
+- The walk-through assumed every ECS deployment-failure incident has an `UpdateService` call; one dev variant hides the trigger (as CloudTrail gaps would), so the spec now picks incidents by their observable events.
+
+Gate status:
+- [x] Fresh clone -> `docker compose up --build --wait` -> offline demo diagnosis in the UI (2026-10-08, Windows 11, Docker Engine 29.8.1): clone of `ace7f20` into an empty directory with a new database volume; all three containers healthy; Playwright suite against http://localhost:3000 (nginx, CSP on) 5/5 passed, including the walk-through (import, diagnose, labelled evidence with events, timeline, metrics, logs, CloudTrail, graph, lifecycle to CLOSED); `scripts/quickstart_check.py` passed. Production override (separate project): starts read-only with only nginx published, quickstart check passed, JSON logs, compose refuses to start without the secrets, API refuses the demo key.
+- [x] Full test suite green: backend `pytest` 391 passed, 1 skipped (live pgvector test, needs `CLOUDDIAG_TEST_PG_URL`; CI runs it); `ruff check` and `ruff format --check` clean; frontend typecheck and build pass, Vitest 30 passed, Playwright 5 passed (demo backend and Docker stack).
+- [x] Test counts: 255 unit (225 backend + 30 frontend), 164 integration, 8 end-to-end (3 HTTP + 5 browser); minimum 30 / 10 / 5 (`docs/testing.md`).
+- [x] Docs complete and checked by `tests/test_docs.py`; known limitations state synthetic-data validity limits, small-sample calibration caveats, CloudTrail lag and LLM data-exposure risk.
+- [x] Reported numbers traceable to ids: `docs/evaluation.md` cites `exp-7e89b5a0473d` and the five `rpt-` reports; `verify` reproduces both experiment runs; `provenance check` passes; the docs test checks every cited id exists.
+
+Known limits (full list: `docs/known-limitations.md`):
+- Every number is smoke-test / synthetic (simulator + stub LLM); no real-LLM or real-AWS run yet (`docs/future-work.md`, RUNBOOK).
+- The fresh-clone check used the local Docker build cache (layers are keyed by file content, so the result matches a clean build); CI's `docker` job builds from scratch.
+- On a persistent stack the walk-through can run three times (three suitable incidents); reset the volume to run it again.
+- One API process, one role, no TLS inside the stack.
+
+## Next
+All phases (0-10) are complete. Next steps, in order (`docs/future-work.md`): real-LLM runs on the test split (RUNBOOK), captured real incidents from the test stack, then the stretch features in BRIEF order.
 
 Phase 7 carry-over (D71), done: the knowledge-base conditions are in the matrix; besides B1-B4, Full and A1-A5, evaluate RAG with (a) the query's fault type removed from the knowledge base and (b) distractor entries that share alarm metric, topology and wording but differ in root cause; report accuracy, `historical_influence` declarations and `validate_historical_influence` failures for Full vs A1 under each.
 

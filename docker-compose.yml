@@ -1,3 +1,10 @@
+# Offline quickstart (default): no AWS credentials, no LLM key. Synthetic data, stub LLM,
+# smoke-test / synthetic. Ports bind to localhost only.
+#
+#   docker compose up --build        then open http://localhost:3000 (key: demo-key-change-me)
+#
+# Production: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# (requires real secrets; see docs/deployment.md).
 services:
   db:
     image: pgvector/pgvector:pg16
@@ -6,7 +13,7 @@ services:
       POSTGRES_PASSWORD: clouddiag
       POSTGRES_DB: clouddiag
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -22,18 +29,20 @@ services:
     environment:
       CLOUDDIAG_DATABASE_URL: postgresql+psycopg://clouddiag:clouddiag@db:5432/clouddiag
       CLOUDDIAG_CONFIG_FILE: /srv/config/default.yaml
-      # API keys from your shell or .env (JSON list); without keys every /api call is refused.
-      CLOUDDIAG_API__API_KEYS: ${CLOUDDIAG_API__API_KEYS:-[]}
+      CLOUDDIAG_DATA_MODE: ${CLOUDDIAG_DATA_MODE:-offline}
+      # The documented demo key works in development only; production refuses it (D108).
+      CLOUDDIAG_API__API_KEYS: ${CLOUDDIAG_API__API_KEYS:-["demo-key-change-me"]}
+      # Defaults: deterministic stub LLM and the LOCAL-ONLY hashing embedder (no downloads).
+      CLOUDDIAG_LLM__PROVIDER: ${CLOUDDIAG_LLM__PROVIDER:-stub}
+      CLOUDDIAG_LLM__MODEL: ${CLOUDDIAG_LLM__MODEL:-stub-deterministic}
+      CLOUDDIAG_LLM__BASE_URL: ${CLOUDDIAG_LLM__BASE_URL:-}
+      CLOUDDIAG_LLM__API_KEY: ${CLOUDDIAG_LLM__API_KEY:-}
+      CLOUDDIAG_EMBEDDINGS__PROVIDER: ${CLOUDDIAG_EMBEDDINGS__PROVIDER:-hashing}
     depends_on:
       db:
         condition: service_healthy
     ports:
-      - "8000:8000"
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8000/health')"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      - "127.0.0.1:8000:8000"
 
   frontend:
     build: ./frontend
@@ -41,7 +50,7 @@ services:
       api:
         condition: service_healthy
     ports:
-      - "3000:80"
+      - "127.0.0.1:3000:8080"
 
 volumes:
   pgdata:

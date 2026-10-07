@@ -5,6 +5,7 @@
 - Dataset: `synthetic-v1`, generator `1.1.0`, seed 42, content sha256 `06cec245b951be8e9b08524367439b5ee3d37fa75d6551d3bb8e2922d8388f8b`
 - Split: `dev` — 86 incidents, 82 with ground-truth evidence (insufficient-evidence cases have none and are excluded from P/R)
 - Command: `python -m app.evaluation.evidence_eval --tune`
+- Report id: `rpt-d9d6019400b2` (content hash of the .json results; `python -m app.evaluation.provenance check`)
 - Defaults: window 30 min before the alarm + 10 min after, K = 10, weights temporal 0.15, resource 0.0, anomaly 0.3, semantic 0.3, dependency 0.3, anomaly method `zscore` (threshold 6.0), max 2 items per group
 
 Precision@K = ground-truth items in the top-K / items returned. Recall@K = ground-truth items in the top-K / ground-truth items. Window coverage = ground-truth items inside the window (upper bound on recall). Red-herring rate = red-herring cases with a red-herring event in the top-K. Ground truth averages 7.07 items per incident, so precision@K cannot exceed that number / K.

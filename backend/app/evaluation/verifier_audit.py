@@ -31,6 +31,7 @@ from app.config import Settings, get_settings
 from app.diagnosis.context import ContextBuilder
 from app.diagnosis.prompts import build_request
 from app.diagnosis.validator import validate_output
+from app.evaluation.provenance import stamp, with_report_id
 from app.evidence.pipeline import InvestigationPipeline
 from app.offline.dataset import DEFAULT_SEED, DatasetLoader, generate_dataset
 from app.offline.replay import ReplayCollector
@@ -212,6 +213,8 @@ def _write(out_dir: Path, payload: dict) -> None:
         "",
     ]
     out_dir.mkdir(parents=True, exist_ok=True)
+    payload = stamp(payload)
+    md = with_report_id(md, payload["report_id"])
     (out_dir / "phase7-verifier-audit.md").write_text("\n".join(md), encoding="utf-8", newline="\n")
     (out_dir / "phase7-verifier-audit.json").write_text(
         json.dumps(payload, indent=2) + "\n", encoding="utf-8", newline="\n"

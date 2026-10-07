@@ -6,6 +6,7 @@
 - Split: `dev` — 86 incidents, 1325 metric series
 - Labels: injected-fault windows from the truth files (`anomaly_labels`)
 - Command: `python -m app.evaluation.anomaly_eval --sweep`
+- Report id: `rpt-40fc8fb64c37` (content hash of the .json results; `python -m app.evaluation.provenance check`)
 - Config: `anomaly` section of `config/default.yaml` (thresholds below are the defaults)
 
 Precision = flagged points inside an injected window / all flagged points. Recall = injected windows with at least one flag / injected windows with data. Delay = minutes from window start to first flag. Series false-alarm rate = unaffected series with any flag / unaffected series.

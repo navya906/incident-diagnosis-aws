@@ -1,0 +1,2396 @@
+[
+  {
+    "condition": "B1",
+    "family": "baseline",
+    "description": "Rule-based diagnosis (rules written on dev scenarios only)",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.686,
+    "label_correct_ci": [
+      0.593,
+      0.7791
+    ],
+    "label_correct_ci_cluster": [
+      0.5316,
+      0.8387
+    ],
+    "resource_correct": 0.7093,
+    "resource_correct_ci": [
+      0.6163,
+      0.8023
+    ],
+    "root_cause_correct": 0.6744,
+    "root_cause_correct_ci": [
+      0.5814,
+      0.7674
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.5176,
+      0.8334
+    ],
+    "top3_correct": 0.9535,
+    "top3_correct_ci": [
+      0.907,
+      0.9884
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.5843,
+    "cited_precision_ci": [
+      0.4941,
+      0.6745
+    ],
+    "cited_recall": 0.2628,
+    "cited_recall_ci": [
+      0.2221,
+      0.3022
+    ],
+    "cited_recall_ci_cluster": [
+      0.1964,
+      0.3387
+    ],
+    "context_recall": null,
+    "context_recall_ci": null,
+    "context_precision": null,
+    "context_precision_ci": null,
+    "rubric": 0.6134,
+    "rubric_ci": [
+      0.5843,
+      0.6424
+    ],
+    "prompt_tokens": 0.0,
+    "prompt_tokens_ci": [
+      0.0,
+      0.0
+    ],
+    "completion_tokens": 0.0,
+    "completion_tokens_ci": [
+      0.0,
+      0.0
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1421,
+    "brier_verbalized": 0.1612,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "B2",
+    "family": "baseline",
+    "description": "LLM + description only",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.0465,
+    "label_correct_ci": [
+      0.0116,
+      0.093
+    ],
+    "label_correct_ci_cluster": [
+      0.0,
+      0.1579
+    ],
+    "resource_correct": 0.2442,
+    "resource_correct_ci": [
+      0.1628,
+      0.3372
+    ],
+    "root_cause_correct": 0.0465,
+    "root_cause_correct_ci": [
+      0.0116,
+      0.093
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.0,
+      0.1579
+    ],
+    "top3_correct": 0.0465,
+    "top3_correct_ci": [
+      0.0116,
+      0.093
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.0,
+    "cited_precision_ci": [
+      0.0,
+      0.0
+    ],
+    "cited_recall": 0.0,
+    "cited_recall_ci": [
+      0.0,
+      0.0
+    ],
+    "cited_recall_ci_cluster": [
+      0.0,
+      0.0
+    ],
+    "context_recall": 0.0,
+    "context_recall_ci": [
+      0.0,
+      0.0
+    ],
+    "context_precision": 0.0,
+    "context_precision_ci": [
+      0.0,
+      0.0
+    ],
+    "rubric": 0.2616,
+    "rubric_ci": [
+      0.2529,
+      0.2733
+    ],
+    "prompt_tokens": 915.4302,
+    "prompt_tokens_ci": [
+      914.2442,
+      916.6047
+    ],
+    "completion_tokens": 287.6744,
+    "completion_tokens_ci": [
+      286.8951,
+      288.4767
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.2535,
+    "brier_verbalized": 0.1086,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "B3",
+    "family": "baseline",
+    "description": "LLM + description + raw telemetry, truncated to the same token budget by recency",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.186,
+    "label_correct_ci": [
+      0.1047,
+      0.2677
+    ],
+    "label_correct_ci_cluster": [
+      0.022,
+      0.4156
+    ],
+    "resource_correct": 0.2674,
+    "resource_correct_ci": [
+      0.1744,
+      0.3605
+    ],
+    "root_cause_correct": 0.1744,
+    "root_cause_correct_ci": [
+      0.1047,
+      0.2558
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.0,
+      0.4051
+    ],
+    "top3_correct": 0.7558,
+    "top3_correct_ci": [
+      0.6628,
+      0.8372
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.0233,
+    "cited_precision_ci": [
+      0.0,
+      0.0543
+    ],
+    "cited_recall": 0.009,
+    "cited_recall_ci": [
+      0.0,
+      0.0206
+    ],
+    "cited_recall_ci_cluster": [
+      0.0,
+      0.0202
+    ],
+    "context_recall": 0.5244,
+    "context_recall_ci": [
+      0.4146,
+      0.6341
+    ],
+    "context_precision": 0.0163,
+    "context_precision_ci": [
+      0.0126,
+      0.0201
+    ],
+    "rubric": 0.7762,
+    "rubric_ci": [
+      0.7558,
+      0.7994
+    ],
+    "prompt_tokens": 6407.3953,
+    "prompt_tokens_ci": [
+      6300.1012,
+      6462.6747
+    ],
+    "completion_tokens": 407.2093,
+    "completion_tokens_ci": [
+      398.3715,
+      416.0834
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.642,
+    "brier_verbalized": 0.5406,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "B4",
+    "family": "baseline",
+    "description": "LLM + description + ranked evidence (temporal, resource, anomaly, semantic; no graph, no RAG)",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.9302,
+    "label_correct_ci": [
+      0.8721,
+      0.9767
+    ],
+    "label_correct_ci_cluster": [
+      0.8667,
+      0.9783
+    ],
+    "resource_correct": 0.8023,
+    "resource_correct_ci": [
+      0.7209,
+      0.8837
+    ],
+    "root_cause_correct": 0.7791,
+    "root_cause_correct_ci": [
+      0.686,
+      0.8605
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.6046,
+      0.9149
+    ],
+    "top3_correct": 0.9767,
+    "top3_correct_ci": [
+      0.9419,
+      1.0
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.6357,
+    "cited_precision_ci": [
+      0.562,
+      0.7054
+    ],
+    "cited_recall": 0.2996,
+    "cited_recall_ci": [
+      0.266,
+      0.3349
+    ],
+    "cited_recall_ci_cluster": [
+      0.2494,
+      0.3657
+    ],
+    "context_recall": 0.5019,
+    "context_recall_ci": [
+      0.4568,
+      0.5513
+    ],
+    "context_precision": 0.3415,
+    "context_precision_ci": [
+      0.3097,
+      0.3756
+    ],
+    "rubric": 0.968,
+    "rubric_ci": [
+      0.9448,
+      0.9884
+    ],
+    "prompt_tokens": 5123.407,
+    "prompt_tokens_ci": [
+      4956.661,
+      5310.8538
+    ],
+    "completion_tokens": 1405.2442,
+    "completion_tokens_ci": [
+      1363.859,
+      1443.841
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1543,
+    "brier_verbalized": 0.0911,
+    "ece_self_consistency": 0.0523,
+    "brier_self_consistency": 0.0552
+  },
+  {
+    "condition": "Full",
+    "family": "full",
+    "description": "B4 + dependency graph + historical RAG",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.9651,
+    "label_correct_ci": [
+      0.9186,
+      1.0
+    ],
+    "label_correct_ci_cluster": [
+      0.9036,
+      1.0
+    ],
+    "resource_correct": 0.9186,
+    "resource_correct_ci": [
+      0.8488,
+      0.9651
+    ],
+    "root_cause_correct": 0.8953,
+    "root_cause_correct_ci": [
+      0.8256,
+      0.9535
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.7895,
+      0.9773
+    ],
+    "top3_correct": 0.9767,
+    "top3_correct_ci": [
+      0.9419,
+      1.0
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.7791,
+    "cited_precision_ci": [
+      0.7171,
+      0.8372
+    ],
+    "cited_recall": 0.3716,
+    "cited_recall_ci": [
+      0.3433,
+      0.4013
+    ],
+    "cited_recall_ci_cluster": [
+      0.3187,
+      0.4296
+    ],
+    "context_recall": 0.6008,
+    "context_recall_ci": [
+      0.554,
+      0.6477
+    ],
+    "context_precision": 0.4061,
+    "context_precision_ci": [
+      0.3719,
+      0.4402
+    ],
+    "rubric": 0.9797,
+    "rubric_ci": [
+      0.9593,
+      0.9943
+    ],
+    "prompt_tokens": 9406.186,
+    "prompt_tokens_ci": [
+      9160.2619,
+      9638.4567
+    ],
+    "completion_tokens": 1501.8372,
+    "completion_tokens_ci": [
+      1460.9642,
+      1538.582
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1609,
+    "brier_verbalized": 0.0734,
+    "ece_self_consistency": 0.0465,
+    "brier_self_consistency": 0.0465
+  },
+  {
+    "condition": "A1",
+    "family": "ablation",
+    "description": "Full - RAG",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.9651,
+    "label_correct_ci": [
+      0.9186,
+      1.0
+    ],
+    "label_correct_ci_cluster": [
+      0.9036,
+      1.0
+    ],
+    "resource_correct": 0.9186,
+    "resource_correct_ci": [
+      0.8488,
+      0.9651
+    ],
+    "root_cause_correct": 0.8953,
+    "root_cause_correct_ci": [
+      0.8256,
+      0.9535
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.7895,
+      0.9773
+    ],
+    "top3_correct": 0.9767,
+    "top3_correct_ci": [
+      0.9419,
+      1.0
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.7791,
+    "cited_precision_ci": [
+      0.7171,
+      0.8372
+    ],
+    "cited_recall": 0.3716,
+    "cited_recall_ci": [
+      0.3433,
+      0.4013
+    ],
+    "cited_recall_ci_cluster": [
+      0.3187,
+      0.4296
+    ],
+    "context_recall": 0.6008,
+    "context_recall_ci": [
+      0.554,
+      0.6477
+    ],
+    "context_precision": 0.4061,
+    "context_precision_ci": [
+      0.3719,
+      0.4402
+    ],
+    "rubric": 0.9797,
+    "rubric_ci": [
+      0.9593,
+      0.9943
+    ],
+    "prompt_tokens": 2182.093,
+    "prompt_tokens_ci": [
+      2117.893,
+      2244.9634
+    ],
+    "completion_tokens": 467.7791,
+    "completion_tokens_ci": [
+      454.7762,
+      479.5593
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1609,
+    "brier_verbalized": 0.0734,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "A2",
+    "family": "ablation",
+    "description": "Full - dependency graph (weight 0, no graph context)",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.9302,
+    "label_correct_ci": [
+      0.8721,
+      0.9767
+    ],
+    "label_correct_ci_cluster": [
+      0.8667,
+      0.9783
+    ],
+    "resource_correct": 0.8023,
+    "resource_correct_ci": [
+      0.7209,
+      0.8837
+    ],
+    "root_cause_correct": 0.7791,
+    "root_cause_correct_ci": [
+      0.686,
+      0.8605
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.6046,
+      0.9149
+    ],
+    "top3_correct": 0.9767,
+    "top3_correct_ci": [
+      0.9419,
+      1.0
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.6357,
+    "cited_precision_ci": [
+      0.562,
+      0.7054
+    ],
+    "cited_recall": 0.2996,
+    "cited_recall_ci": [
+      0.266,
+      0.3349
+    ],
+    "cited_recall_ci_cluster": [
+      0.2494,
+      0.3657
+    ],
+    "context_recall": 0.5019,
+    "context_recall_ci": [
+      0.4568,
+      0.5513
+    ],
+    "context_precision": 0.3415,
+    "context_precision_ci": [
+      0.3097,
+      0.3756
+    ],
+    "rubric": 0.968,
+    "rubric_ci": [
+      0.9448,
+      0.9884
+    ],
+    "prompt_tokens": 2660.7558,
+    "prompt_tokens_ci": [
+      2590.4756,
+      2733.8198
+    ],
+    "completion_tokens": 501.407,
+    "completion_tokens_ci": [
+      487.068,
+      514.6061
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1543,
+    "brier_verbalized": 0.0911,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "A3",
+    "family": "ablation",
+    "description": "Full - anomaly detection (weight 0, no anomaly context)",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.9767,
+    "label_correct_ci": [
+      0.9419,
+      1.0
+    ],
+    "label_correct_ci_cluster": [
+      0.9462,
+      1.0
+    ],
+    "resource_correct": 0.9419,
+    "resource_correct_ci": [
+      0.8837,
+      0.9884
+    ],
+    "root_cause_correct": 0.9419,
+    "root_cause_correct_ci": [
+      0.8837,
+      0.9884
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.8925,
+      0.9877
+    ],
+    "top3_correct": 1.0,
+    "top3_correct_ci": [
+      1.0,
+      1.0
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.6492,
+    "cited_precision_ci": [
+      0.5795,
+      0.7209
+    ],
+    "cited_recall": 0.2812,
+    "cited_recall_ci": [
+      0.2495,
+      0.3133
+    ],
+    "cited_recall_ci_cluster": [
+      0.2153,
+      0.3489
+    ],
+    "context_recall": 0.2627,
+    "context_recall_ci": [
+      0.2109,
+      0.3154
+    ],
+    "context_precision": 0.1866,
+    "context_precision_ci": [
+      0.15,
+      0.2232
+    ],
+    "rubric": 0.9738,
+    "rubric_ci": [
+      0.9477,
+      0.9942
+    ],
+    "prompt_tokens": 2811.0465,
+    "prompt_tokens_ci": [
+      2739.7055,
+      2879.1756
+    ],
+    "completion_tokens": 457.814,
+    "completion_tokens_ci": [
+      446.2439,
+      468.6744
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1357,
+    "brier_verbalized": 0.0424,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "A4",
+    "family": "ablation",
+    "description": "Full - temporal correlation (no chains, temporal weight 0)",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.7791,
+    "label_correct_ci": [
+      0.686,
+      0.8605
+    ],
+    "label_correct_ci_cluster": [
+      0.5647,
+      0.9556
+    ],
+    "resource_correct": 0.7209,
+    "resource_correct_ci": [
+      0.6279,
+      0.814
+    ],
+    "root_cause_correct": 0.6977,
+    "root_cause_correct_ci": [
+      0.6047,
+      0.7907
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.4737,
+      0.9091
+    ],
+    "top3_correct": 0.9651,
+    "top3_correct_ci": [
+      0.9186,
+      1.0
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.626,
+    "cited_precision_ci": [
+      0.5407,
+      0.7152
+    ],
+    "cited_recall": 0.3055,
+    "cited_recall_ci": [
+      0.2603,
+      0.3528
+    ],
+    "cited_recall_ci_cluster": [
+      0.2066,
+      0.4164
+    ],
+    "context_recall": 0.5995,
+    "context_recall_ci": [
+      0.5493,
+      0.6475
+    ],
+    "context_precision": 0.4037,
+    "context_precision_ci": [
+      0.3671,
+      0.4402
+    ],
+    "rubric": 0.9331,
+    "rubric_ci": [
+      0.9069,
+      0.9564
+    ],
+    "prompt_tokens": 2391.4535,
+    "prompt_tokens_ci": [
+      2360.0916,
+      2421.7381
+    ],
+    "completion_tokens": 465.0465,
+    "completion_tokens_ci": [
+      454.7433,
+      474.9552
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1151,
+    "brier_verbalized": 0.1132,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "A5",
+    "family": "ablation",
+    "description": "Full - evidence ranking (top-K by recency)",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.9767,
+    "label_correct_ci": [
+      0.9419,
+      1.0
+    ],
+    "label_correct_ci_cluster": [
+      0.9211,
+      1.0
+    ],
+    "resource_correct": 0.9884,
+    "resource_correct_ci": [
+      0.9651,
+      1.0
+    ],
+    "root_cause_correct": 0.9651,
+    "root_cause_correct_ci": [
+      0.9186,
+      1.0
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.9067,
+      1.0
+    ],
+    "top3_correct": 0.9767,
+    "top3_correct_ci": [
+      0.9419,
+      1.0
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.7171,
+    "cited_precision_ci": [
+      0.6492,
+      0.7829
+    ],
+    "cited_recall": 0.3046,
+    "cited_recall_ci": [
+      0.2765,
+      0.3324
+    ],
+    "cited_recall_ci_cluster": [
+      0.2489,
+      0.3659
+    ],
+    "context_recall": 0.0138,
+    "context_recall_ci": [
+      0.0046,
+      0.0246
+    ],
+    "context_precision": 0.0085,
+    "context_precision_ci": [
+      0.0024,
+      0.0146
+    ],
+    "rubric": 0.9797,
+    "rubric_ci": [
+      0.9593,
+      0.9943
+    ],
+    "prompt_tokens": 3154.9419,
+    "prompt_tokens_ci": [
+      3076.2337,
+      3232.9674
+    ],
+    "completion_tokens": 506.1977,
+    "completion_tokens_ci": [
+      492.9515,
+      518.7581
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1769,
+    "brier_verbalized": 0.0734,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "Full-KB-fault-removed",
+    "family": "ablation",
+    "description": "Full with every knowledge-base entry of the incident's true fault type removed (D71)",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.9651,
+    "label_correct_ci": [
+      0.9186,
+      1.0
+    ],
+    "label_correct_ci_cluster": [
+      0.9036,
+      1.0
+    ],
+    "resource_correct": 0.9186,
+    "resource_correct_ci": [
+      0.8488,
+      0.9651
+    ],
+    "root_cause_correct": 0.8953,
+    "root_cause_correct_ci": [
+      0.8256,
+      0.9535
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.7895,
+      0.9773
+    ],
+    "top3_correct": 0.9767,
+    "top3_correct_ci": [
+      0.9419,
+      1.0
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.7791,
+    "cited_precision_ci": [
+      0.7171,
+      0.8372
+    ],
+    "cited_recall": 0.3716,
+    "cited_recall_ci": [
+      0.3433,
+      0.4013
+    ],
+    "cited_recall_ci_cluster": [
+      0.3187,
+      0.4296
+    ],
+    "context_recall": 0.6008,
+    "context_recall_ci": [
+      0.554,
+      0.6477
+    ],
+    "context_precision": 0.4061,
+    "context_precision_ci": [
+      0.3719,
+      0.4402
+    ],
+    "rubric": 0.9797,
+    "rubric_ci": [
+      0.9593,
+      0.9943
+    ],
+    "prompt_tokens": 3189.8605,
+    "prompt_tokens_ci": [
+      3116.8267,
+      3261.8488
+    ],
+    "completion_tokens": 468.5814,
+    "completion_tokens_ci": [
+      455.766,
+      480.3503
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1609,
+    "brier_verbalized": 0.0734,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "Full-KB-distractors",
+    "family": "ablation",
+    "description": "Full with distractor entries (same wording and signals, different root cause) (D71)",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.9651,
+    "label_correct_ci": [
+      0.9186,
+      1.0
+    ],
+    "label_correct_ci_cluster": [
+      0.9036,
+      1.0
+    ],
+    "resource_correct": 0.9186,
+    "resource_correct_ci": [
+      0.8488,
+      0.9651
+    ],
+    "root_cause_correct": 0.8953,
+    "root_cause_correct_ci": [
+      0.8256,
+      0.9535
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.7895,
+      0.9773
+    ],
+    "top3_correct": 0.9767,
+    "top3_correct_ci": [
+      0.9419,
+      1.0
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.7791,
+    "cited_precision_ci": [
+      0.7171,
+      0.8372
+    ],
+    "cited_recall": 0.3716,
+    "cited_recall_ci": [
+      0.3433,
+      0.4013
+    ],
+    "cited_recall_ci_cluster": [
+      0.3187,
+      0.4296
+    ],
+    "context_recall": 0.6008,
+    "context_recall_ci": [
+      0.554,
+      0.6477
+    ],
+    "context_precision": 0.4061,
+    "context_precision_ci": [
+      0.3719,
+      0.4402
+    ],
+    "rubric": 0.9797,
+    "rubric_ci": [
+      0.9593,
+      0.9943
+    ],
+    "prompt_tokens": 3080.0581,
+    "prompt_tokens_ci": [
+      3008.6087,
+      3153.0477
+    ],
+    "completion_tokens": 500.0814,
+    "completion_tokens_ci": [
+      486.475,
+      512.3375
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1609,
+    "brier_verbalized": 0.0734,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "Full-no-redaction",
+    "family": "ablation",
+    "description": "Full with redaction switched off (measures redaction's effect on quality; offline synthetic data only, refused in aws mode) (D87)",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.9651,
+    "label_correct_ci": [
+      0.9186,
+      1.0
+    ],
+    "label_correct_ci_cluster": [
+      0.9036,
+      1.0
+    ],
+    "resource_correct": 0.9186,
+    "resource_correct_ci": [
+      0.8488,
+      0.9651
+    ],
+    "root_cause_correct": 0.8953,
+    "root_cause_correct_ci": [
+      0.8256,
+      0.9535
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.7895,
+      0.9773
+    ],
+    "top3_correct": 0.9767,
+    "top3_correct_ci": [
+      0.9419,
+      1.0
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.7791,
+    "cited_precision_ci": [
+      0.7171,
+      0.8372
+    ],
+    "cited_recall": 0.3716,
+    "cited_recall_ci": [
+      0.3433,
+      0.4013
+    ],
+    "cited_recall_ci_cluster": [
+      0.3187,
+      0.4296
+    ],
+    "context_recall": 0.6008,
+    "context_recall_ci": [
+      0.554,
+      0.6477
+    ],
+    "context_precision": 0.4061,
+    "context_precision_ci": [
+      0.3719,
+      0.4402
+    ],
+    "rubric": 0.9797,
+    "rubric_ci": [
+      0.9593,
+      0.9943
+    ],
+    "prompt_tokens": 3135.3953,
+    "prompt_tokens_ci": [
+      3053.4206,
+      3212.8189
+    ],
+    "completion_tokens": 500.8837,
+    "completion_tokens_ci": [
+      487.1142,
+      513.1398
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1609,
+    "brier_verbalized": 0.0734,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "RQ6-K5",
+    "family": "sweep",
+    "description": "Full with K=5",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.9884,
+    "label_correct_ci": [
+      0.9651,
+      1.0
+    ],
+    "label_correct_ci_cluster": [
+      0.9605,
+      1.0
+    ],
+    "resource_correct": 0.9535,
+    "resource_correct_ci": [
+      0.907,
+      0.9884
+    ],
+    "root_cause_correct": 0.9419,
+    "root_cause_correct_ci": [
+      0.8837,
+      0.9884
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.8652,
+      1.0
+    ],
+    "top3_correct": 0.9884,
+    "top3_correct_ci": [
+      0.9651,
+      1.0
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.7578,
+    "cited_precision_ci": [
+      0.6957,
+      0.8178
+    ],
+    "cited_recall": 0.3333,
+    "cited_recall_ci": [
+      0.3055,
+      0.3608
+    ],
+    "cited_recall_ci_cluster": [
+      0.2873,
+      0.3833
+    ],
+    "context_recall": 0.2816,
+    "context_recall_ci": [
+      0.2381,
+      0.3268
+    ],
+    "context_precision": 0.3854,
+    "context_precision_ci": [
+      0.3268,
+      0.4415
+    ],
+    "rubric": 0.9767,
+    "rubric_ci": [
+      0.9535,
+      0.9942
+    ],
+    "prompt_tokens": 3015.0,
+    "prompt_tokens_ci": [
+      2936.7346,
+      3093.925
+    ],
+    "completion_tokens": 488.1395,
+    "completion_tokens_ci": [
+      474.1965,
+      501.0587
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1784,
+    "brier_verbalized": 0.0683,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "RQ6-K10",
+    "family": "sweep",
+    "description": "Full with K=10",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.9651,
+    "label_correct_ci": [
+      0.9186,
+      1.0
+    ],
+    "label_correct_ci_cluster": [
+      0.9036,
+      1.0
+    ],
+    "resource_correct": 0.9186,
+    "resource_correct_ci": [
+      0.8488,
+      0.9651
+    ],
+    "root_cause_correct": 0.8953,
+    "root_cause_correct_ci": [
+      0.8256,
+      0.9535
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.7895,
+      0.9773
+    ],
+    "top3_correct": 0.9767,
+    "top3_correct_ci": [
+      0.9419,
+      1.0
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.7791,
+    "cited_precision_ci": [
+      0.7171,
+      0.8372
+    ],
+    "cited_recall": 0.3716,
+    "cited_recall_ci": [
+      0.3433,
+      0.4013
+    ],
+    "cited_recall_ci_cluster": [
+      0.3187,
+      0.4296
+    ],
+    "context_recall": 0.6008,
+    "context_recall_ci": [
+      0.554,
+      0.6477
+    ],
+    "context_precision": 0.4061,
+    "context_precision_ci": [
+      0.3719,
+      0.4402
+    ],
+    "rubric": 0.9797,
+    "rubric_ci": [
+      0.9593,
+      0.9943
+    ],
+    "prompt_tokens": 3135.3953,
+    "prompt_tokens_ci": [
+      3053.4206,
+      3212.8189
+    ],
+    "completion_tokens": 500.8837,
+    "completion_tokens_ci": [
+      487.1142,
+      513.1398
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1609,
+    "brier_verbalized": 0.0734,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "RQ6-K20",
+    "family": "sweep",
+    "description": "Full with K=20",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.9767,
+    "label_correct_ci": [
+      0.9419,
+      1.0
+    ],
+    "label_correct_ci_cluster": [
+      0.9211,
+      1.0
+    ],
+    "resource_correct": 0.8953,
+    "resource_correct_ci": [
+      0.8256,
+      0.9535
+    ],
+    "root_cause_correct": 0.8721,
+    "root_cause_correct_ci": [
+      0.8023,
+      0.9419
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.7263,
+      0.9773
+    ],
+    "top3_correct": 0.9767,
+    "top3_correct_ci": [
+      0.9419,
+      1.0
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.7558,
+    "cited_precision_ci": [
+      0.686,
+      0.8178
+    ],
+    "cited_recall": 0.3667,
+    "cited_recall_ci": [
+      0.3333,
+      0.4019
+    ],
+    "cited_recall_ci_cluster": [
+      0.302,
+      0.4381
+    ],
+    "context_recall": 0.7822,
+    "context_recall_ci": [
+      0.7447,
+      0.8181
+    ],
+    "context_precision": 0.2732,
+    "context_precision_ci": [
+      0.253,
+      0.2933
+    ],
+    "rubric": 0.9797,
+    "rubric_ci": [
+      0.9593,
+      0.9943
+    ],
+    "prompt_tokens": 3336.5581,
+    "prompt_tokens_ci": [
+      3251.1442,
+      3420.482
+    ],
+    "completion_tokens": 512.6977,
+    "completion_tokens_ci": [
+      498.0878,
+      526.3625
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1787,
+    "brier_verbalized": 0.0755,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "RQ6-K40",
+    "family": "sweep",
+    "description": "Full with K=40",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.9651,
+    "label_correct_ci": [
+      0.9302,
+      1.0
+    ],
+    "label_correct_ci_cluster": [
+      0.9067,
+      1.0
+    ],
+    "resource_correct": 0.8605,
+    "resource_correct_ci": [
+      0.7904,
+      0.9302
+    ],
+    "root_cause_correct": 0.8372,
+    "root_cause_correct_ci": [
+      0.7558,
+      0.9186
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.6923,
+      0.9535
+    ],
+    "top3_correct": 0.9767,
+    "top3_correct_ci": [
+      0.9419,
+      1.0
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.7132,
+    "cited_precision_ci": [
+      0.6395,
+      0.7829
+    ],
+    "cited_recall": 0.3565,
+    "cited_recall_ci": [
+      0.3179,
+      0.3962
+    ],
+    "cited_recall_ci_cluster": [
+      0.2747,
+      0.4406
+    ],
+    "context_recall": 0.8183,
+    "context_recall_ci": [
+      0.7855,
+      0.8484
+    ],
+    "context_precision": 0.1452,
+    "context_precision_ci": [
+      0.1356,
+      0.1556
+    ],
+    "rubric": 0.9767,
+    "rubric_ci": [
+      0.9564,
+      0.9942
+    ],
+    "prompt_tokens": 3764.9767,
+    "prompt_tokens_ci": [
+      3664.8224,
+      3854.875
+    ],
+    "completion_tokens": 535.7674,
+    "completion_tokens_ci": [
+      522.4314,
+      547.3198
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.194,
+    "brier_verbalized": 0.0877,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "RQ6-W5",
+    "family": "sweep",
+    "description": "Full with a 5-min window",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.814,
+    "label_correct_ci": [
+      0.7326,
+      0.8953
+    ],
+    "label_correct_ci_cluster": [
+      0.6667,
+      0.9419
+    ],
+    "resource_correct": 0.7209,
+    "resource_correct_ci": [
+      0.6279,
+      0.814
+    ],
+    "root_cause_correct": 0.686,
+    "root_cause_correct_ci": [
+      0.593,
+      0.7791
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.5057,
+      0.8721
+    ],
+    "top3_correct": 0.9419,
+    "top3_correct_ci": [
+      0.8837,
+      0.9884
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.5446,
+    "cited_precision_ci": [
+      0.469,
+      0.626
+    ],
+    "cited_recall": 0.2592,
+    "cited_recall_ci": [
+      0.2184,
+      0.3001
+    ],
+    "cited_recall_ci_cluster": [
+      0.1824,
+      0.3432
+    ],
+    "context_recall": 0.4731,
+    "context_recall_ci": [
+      0.4277,
+      0.5211
+    ],
+    "context_precision": 0.3207,
+    "context_precision_ci": [
+      0.2878,
+      0.3561
+    ],
+    "rubric": 0.9477,
+    "rubric_ci": [
+      0.9215,
+      0.9709
+    ],
+    "prompt_tokens": 2863.5,
+    "prompt_tokens_ci": [
+      2794.1971,
+      2931.2224
+    ],
+    "completion_tokens": 475.5581,
+    "completion_tokens_ci": [
+      463.7779,
+      487.1401
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1358,
+    "brier_verbalized": 0.0964,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "RQ6-W15",
+    "family": "sweep",
+    "description": "Full with a 15-min window",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.9651,
+    "label_correct_ci": [
+      0.9186,
+      1.0
+    ],
+    "label_correct_ci_cluster": [
+      0.9036,
+      1.0
+    ],
+    "resource_correct": 0.907,
+    "resource_correct_ci": [
+      0.8372,
+      0.9651
+    ],
+    "root_cause_correct": 0.8837,
+    "root_cause_correct_ci": [
+      0.814,
+      0.9422
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.7582,
+      0.9773
+    ],
+    "top3_correct": 0.9767,
+    "top3_correct_ci": [
+      0.9419,
+      1.0
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.7868,
+    "cited_precision_ci": [
+      0.7287,
+      0.8411
+    ],
+    "cited_recall": 0.376,
+    "cited_recall_ci": [
+      0.3499,
+      0.4029
+    ],
+    "cited_recall_ci_cluster": [
+      0.324,
+      0.4328
+    ],
+    "context_recall": 0.6029,
+    "context_recall_ci": [
+      0.5578,
+      0.6493
+    ],
+    "context_precision": 0.4073,
+    "context_precision_ci": [
+      0.3732,
+      0.4415
+    ],
+    "rubric": 0.9797,
+    "rubric_ci": [
+      0.9593,
+      0.9943
+    ],
+    "prompt_tokens": 3103.0,
+    "prompt_tokens_ci": [
+      3022.6549,
+      3182.327
+    ],
+    "completion_tokens": 500.5116,
+    "completion_tokens_ci": [
+      486.9753,
+      512.886
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1572,
+    "brier_verbalized": 0.0713,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "RQ6-W30",
+    "family": "sweep",
+    "description": "Full with a 30-min window",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.9651,
+    "label_correct_ci": [
+      0.9186,
+      1.0
+    ],
+    "label_correct_ci_cluster": [
+      0.9036,
+      1.0
+    ],
+    "resource_correct": 0.9186,
+    "resource_correct_ci": [
+      0.8488,
+      0.9651
+    ],
+    "root_cause_correct": 0.8953,
+    "root_cause_correct_ci": [
+      0.8256,
+      0.9535
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.7895,
+      0.9773
+    ],
+    "top3_correct": 0.9767,
+    "top3_correct_ci": [
+      0.9419,
+      1.0
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.7791,
+    "cited_precision_ci": [
+      0.7171,
+      0.8372
+    ],
+    "cited_recall": 0.3716,
+    "cited_recall_ci": [
+      0.3433,
+      0.4013
+    ],
+    "cited_recall_ci_cluster": [
+      0.3187,
+      0.4296
+    ],
+    "context_recall": 0.6008,
+    "context_recall_ci": [
+      0.554,
+      0.6477
+    ],
+    "context_precision": 0.4061,
+    "context_precision_ci": [
+      0.3719,
+      0.4402
+    ],
+    "rubric": 0.9797,
+    "rubric_ci": [
+      0.9593,
+      0.9943
+    ],
+    "prompt_tokens": 3135.3953,
+    "prompt_tokens_ci": [
+      3053.4206,
+      3212.8189
+    ],
+    "completion_tokens": 500.8837,
+    "completion_tokens_ci": [
+      487.1142,
+      513.1398
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1609,
+    "brier_verbalized": 0.0734,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "RQ6-W60",
+    "family": "sweep",
+    "description": "Full with a 60-min window",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.9651,
+    "label_correct_ci": [
+      0.9186,
+      1.0
+    ],
+    "label_correct_ci_cluster": [
+      0.9036,
+      1.0
+    ],
+    "resource_correct": 0.9186,
+    "resource_correct_ci": [
+      0.8488,
+      0.9651
+    ],
+    "root_cause_correct": 0.8953,
+    "root_cause_correct_ci": [
+      0.8256,
+      0.9535
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.7895,
+      0.9773
+    ],
+    "top3_correct": 0.9767,
+    "top3_correct_ci": [
+      0.9419,
+      1.0
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.7829,
+    "cited_precision_ci": [
+      0.7209,
+      0.8411
+    ],
+    "cited_recall": 0.3737,
+    "cited_recall_ci": [
+      0.3447,
+      0.4031
+    ],
+    "cited_recall_ci_cluster": [
+      0.3227,
+      0.4303
+    ],
+    "context_recall": 0.6008,
+    "context_recall_ci": [
+      0.554,
+      0.6477
+    ],
+    "context_precision": 0.4061,
+    "context_precision_ci": [
+      0.3719,
+      0.4402
+    ],
+    "rubric": 0.9797,
+    "rubric_ci": [
+      0.9593,
+      0.9943
+    ],
+    "prompt_tokens": 3212.0,
+    "prompt_tokens_ci": [
+      3125.5334,
+      3294.4895
+    ],
+    "completion_tokens": 504.4186,
+    "completion_tokens_ci": [
+      490.7631,
+      517.5814
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1681,
+    "brier_verbalized": 0.0782,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "RQ6-Emetrics",
+    "family": "sweep",
+    "description": "Full with evidence types metrics",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.3372,
+    "label_correct_ci": [
+      0.2442,
+      0.4419
+    ],
+    "label_correct_ci_cluster": [
+      0.1047,
+      0.5862
+    ],
+    "resource_correct": 0.3953,
+    "resource_correct_ci": [
+      0.2907,
+      0.5
+    ],
+    "root_cause_correct": 0.186,
+    "root_cause_correct_ci": [
+      0.1047,
+      0.2674
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.043,
+      0.3605
+    ],
+    "top3_correct": 0.3605,
+    "top3_correct_ci": [
+      0.2558,
+      0.4535
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.1725,
+    "cited_precision_ci": [
+      0.1124,
+      0.2345
+    ],
+    "cited_recall": 0.072,
+    "cited_recall_ci": [
+      0.0468,
+      0.1003
+    ],
+    "cited_recall_ci_cluster": [
+      0.0284,
+      0.1169
+    ],
+    "context_recall": 0.2869,
+    "context_recall_ci": [
+      0.2461,
+      0.3299
+    ],
+    "context_precision": 0.2098,
+    "context_precision_ci": [
+      0.178,
+      0.2415
+    ],
+    "rubric": 0.657,
+    "rubric_ci": [
+      0.593,
+      0.7181
+    ],
+    "prompt_tokens": 2689.7674,
+    "prompt_tokens_ci": [
+      2619.0872,
+      2758.5509
+    ],
+    "completion_tokens": 388.8256,
+    "completion_tokens_ci": [
+      372.0904,
+      405.2224
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.2755,
+    "brier_verbalized": 0.2242,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "RQ6-E+cloudtrail",
+    "family": "sweep",
+    "description": "Full with evidence types +cloudtrail",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.6512,
+    "label_correct_ci": [
+      0.5465,
+      0.7442
+    ],
+    "label_correct_ci_cluster": [
+      0.4482,
+      0.8193
+    ],
+    "resource_correct": 0.686,
+    "resource_correct_ci": [
+      0.5814,
+      0.7791
+    ],
+    "root_cause_correct": 0.5814,
+    "root_cause_correct_ci": [
+      0.4767,
+      0.686
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.3889,
+      0.7416
+    ],
+    "top3_correct": 0.7326,
+    "top3_correct_ci": [
+      0.6395,
+      0.8256
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.4961,
+    "cited_precision_ci": [
+      0.4031,
+      0.5853
+    ],
+    "cited_recall": 0.1372,
+    "cited_recall_ci": [
+      0.1088,
+      0.1682
+    ],
+    "cited_recall_ci_cluster": [
+      0.0922,
+      0.1771
+    ],
+    "context_recall": 0.3434,
+    "context_recall_ci": [
+      0.2975,
+      0.3887
+    ],
+    "context_precision": 0.2512,
+    "context_precision_ci": [
+      0.2146,
+      0.2866
+    ],
+    "rubric": 0.811,
+    "rubric_ci": [
+      0.75,
+      0.8692
+    ],
+    "prompt_tokens": 2821.1512,
+    "prompt_tokens_ci": [
+      2744.1767,
+      2896.8131
+    ],
+    "completion_tokens": 423.4535,
+    "completion_tokens_ci": [
+      405.1855,
+      440.152
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1358,
+    "brier_verbalized": 0.148,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "RQ6-E+logs",
+    "family": "sweep",
+    "description": "Full with evidence types +logs",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.9651,
+    "label_correct_ci": [
+      0.9186,
+      1.0
+    ],
+    "label_correct_ci_cluster": [
+      0.9036,
+      1.0
+    ],
+    "resource_correct": 0.9186,
+    "resource_correct_ci": [
+      0.8488,
+      0.9651
+    ],
+    "root_cause_correct": 0.8953,
+    "root_cause_correct_ci": [
+      0.8256,
+      0.9535
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.7895,
+      0.9773
+    ],
+    "top3_correct": 0.9767,
+    "top3_correct_ci": [
+      0.9419,
+      1.0
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.7519,
+    "cited_precision_ci": [
+      0.6938,
+      0.8062
+    ],
+    "cited_recall": 0.36,
+    "cited_recall_ci": [
+      0.3307,
+      0.3912
+    ],
+    "cited_recall_ci_cluster": [
+      0.3004,
+      0.4241
+    ],
+    "context_recall": 0.5763,
+    "context_recall_ci": [
+      0.532,
+      0.6214
+    ],
+    "context_precision": 0.389,
+    "context_precision_ci": [
+      0.3561,
+      0.4232
+    ],
+    "rubric": 0.9797,
+    "rubric_ci": [
+      0.9593,
+      0.9943
+    ],
+    "prompt_tokens": 3084.9302,
+    "prompt_tokens_ci": [
+      3010.1599,
+      3159.136
+    ],
+    "completion_tokens": 503.6279,
+    "completion_tokens_ci": [
+      489.6887,
+      516.873
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1699,
+    "brier_verbalized": 0.0794,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  },
+  {
+    "condition": "RQ6-E+config",
+    "family": "sweep",
+    "description": "Full with evidence types +config",
+    "n_incidents": 86,
+    "n_records": 86,
+    "label_correct": 0.9651,
+    "label_correct_ci": [
+      0.9186,
+      1.0
+    ],
+    "label_correct_ci_cluster": [
+      0.9036,
+      1.0
+    ],
+    "resource_correct": 0.9186,
+    "resource_correct_ci": [
+      0.8488,
+      0.9651
+    ],
+    "root_cause_correct": 0.8953,
+    "root_cause_correct_ci": [
+      0.8256,
+      0.9535
+    ],
+    "root_cause_correct_ci_cluster": [
+      0.7895,
+      0.9773
+    ],
+    "top3_correct": 0.9767,
+    "top3_correct_ci": [
+      0.9419,
+      1.0
+    ],
+    "valid": 1.0,
+    "valid_ci": [
+      1.0,
+      1.0
+    ],
+    "cited_precision": 0.7791,
+    "cited_precision_ci": [
+      0.7171,
+      0.8372
+    ],
+    "cited_recall": 0.3716,
+    "cited_recall_ci": [
+      0.3433,
+      0.4013
+    ],
+    "cited_recall_ci_cluster": [
+      0.3187,
+      0.4296
+    ],
+    "context_recall": 0.6008,
+    "context_recall_ci": [
+      0.554,
+      0.6477
+    ],
+    "context_precision": 0.4061,
+    "context_precision_ci": [
+      0.3719,
+      0.4402
+    ],
+    "rubric": 0.9797,
+    "rubric_ci": [
+      0.9593,
+      0.9943
+    ],
+    "prompt_tokens": 3135.3953,
+    "prompt_tokens_ci": [
+      3053.4206,
+      3212.8189
+    ],
+    "completion_tokens": 500.8837,
+    "completion_tokens_ci": [
+      487.1142,
+      513.1398
+    ],
+    "cost_usd": 0.0,
+    "cost_usd_ci": [
+      0.0,
+      0.0
+    ],
+    "latency_ms": 0.0,
+    "latency_ms_ci": [
+      0.0,
+      0.0
+    ],
+    "hallucination_rate": 0.0,
+    "rejected": 0,
+    "repaired": 0,
+    "ece_verbalized": 0.1609,
+    "brier_verbalized": 0.0734,
+    "ece_self_consistency": null,
+    "brier_self_consistency": null
+  }
+]

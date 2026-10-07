@@ -4,10 +4,15 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// End-to-end walk-through on offline data (smoke-test / synthetic): a real backend
-// (python -m app.demo: SQLite, offline dataset, stub LLM) and the built frontend (vite preview).
+// End-to-end tests on offline data (smoke-test / synthetic).
+//
+// Default: starts a real backend (python -m app.demo: SQLite, offline dataset, stub LLM) and the
+// built frontend (vite preview). With E2E_BASE_URL set, the tests run against an already running
+// stack instead, e.g. the Docker quickstart:
+//   E2E_BASE_URL=http://localhost:3000 E2E_API_KEY=demo-key-change-me npx playwright test
 const API_PORT = Number(process.env.E2E_API_PORT ?? 8765);
 const WEB_PORT = Number(process.env.E2E_WEB_PORT ?? 4199);
+const EXTERNAL = process.env.E2E_BASE_URL;
 export const E2E_KEY = process.env.E2E_API_KEY ?? "e2e-key-0123456789";
 const backend = path.resolve(__dirname, "..", "backend");
 const python =
@@ -20,28 +25,32 @@ export default defineConfig({
   timeout: 180_000,
   expect: { timeout: 30_000 },
   retries: 0,
+  // One worker: the specs share one backend and its diagnosis job queue.
+  workers: 1,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
-    baseURL: `http://127.0.0.1:${WEB_PORT}`,
+    baseURL: EXTERNAL ?? `http://127.0.0.1:${WEB_PORT}`,
     screenshot: "on",
     trace: "retain-on-failure",
     viewport: { width: 1400, height: 900 },
   },
-  webServer: [
-    {
-      command: `"${python}" -m app.demo --port ${API_PORT} --db "${db}" --fresh`,
-      cwd: backend,
-      url: `http://127.0.0.1:${API_PORT}/health`,
-      timeout: 180_000,
-      reuseExistingServer: false,
-      env: { CLOUDDIAG_DEMO_KEY: E2E_KEY },
-    },
-    {
-      command: `npm run build && npx vite preview --host 127.0.0.1 --port ${WEB_PORT} --strictPort`,
-      url: `http://127.0.0.1:${WEB_PORT}`,
-      timeout: 240_000,
-      reuseExistingServer: false,
-      env: { API_URL: `http://127.0.0.1:${API_PORT}` },
-    },
-  ],
+  webServer: EXTERNAL
+    ? undefined
+    : [
+        {
+          command: `"${python}" -m app.demo --port ${API_PORT} --db "${db}" --fresh`,
+          cwd: backend,
+          url: `http://127.0.0.1:${API_PORT}/health`,
+          timeout: 180_000,
+          reuseExistingServer: false,
+          env: { CLOUDDIAG_DEMO_KEY: E2E_KEY },
+        },
+        {
+          command: `npm run build && npx vite preview --host 127.0.0.1 --port ${WEB_PORT} --strictPort`,
+          url: `http://127.0.0.1:${WEB_PORT}`,
+          timeout: 240_000,
+          reuseExistingServer: false,
+          env: { API_URL: `http://127.0.0.1:${API_PORT}` },
+        },
+      ],
 });

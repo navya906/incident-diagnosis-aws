@@ -9,9 +9,15 @@ OpenAPI docs: `/docs` (the schema only, no data).
   `X-API-Key: <key>`, or as the password of HTTP Basic auth (`https://ingest:<key>@host/api/...`,
   the form an SNS HTTPS subscription can carry). With no keys configured every `/api` request is
   rejected. `api.auth_disabled: true` is for local development and is refused in aws mode.
+  In production (`CLOUDDIAG_ENVIRONMENT=production`) and in aws mode the API refuses to start
+  with the documented demo key (`demo-key-change-me`), with any key shorter than 16 characters,
+  or with auth disabled (D108).
 - **Rate limit:** a token bucket per key (per client IP for requests without a valid key):
   `rate_limit_per_minute` (120) refill, `rate_limit_burst` (30). Over the limit: `429` with
-  `Retry-After`.
+  `Retry-After`; the web UI waits for `Retry-After` and retries up to three times. Behind the
+  bundled nginx the client address comes from `X-Forwarded-For`, which nginx overwrites with
+  the connecting address; the API trusts it only from `FORWARDED_ALLOW_IPS` (production
+  compose: the nginx container, the API port is not published).
 - **Input:** strict request models (unknown fields rejected), body limit `max_body_bytes`, events
   limit `max_events_per_request`, canonical resource ids, windows of at most 48 h. Validation
   errors list the location and message only and never echo submitted values.
@@ -44,6 +50,7 @@ OpenAPI docs: `/docs` (the schema only, no data).
 | GET | `/api/jobs/{job_id}` | Job status: PENDING, RUNNING, SUCCEEDED or FAILED, with timestamps, `diagnosis_id` and error. |
 | GET | `/api/incidents/{id}/diagnoses` | All diagnoses, newest first. |
 | GET | `/api/incidents/{id}/diagnosis` | Latest diagnosis with deterministic severity, citations, self-consistency and context statistics. |
+| GET | `/api/offline/incidents` | Offline dataset incidents available for import: id, split, title and alarm time only (no category, labels or other ground truth) (D99). |
 | POST | `/api/offline/import` | `{"offline_incident_id": "inc-..."}`: create an incident from the offline dataset (observable data only). |
 | GET | `/api/metrics/lifecycle` | Counts by status and mean time to detect, diagnose and resolve. |
 | GET | `/api/audit` | Audit records (`limit`, `incident_id`). |

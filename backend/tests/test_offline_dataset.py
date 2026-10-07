@@ -13,6 +13,8 @@ from app.interfaces.collector import CollectionRequest
 from app.offline.dataset import DatasetError, DatasetLoader, generate_dataset, scenario_plan
 from app.offline.replay import ReplayCollector
 
+pytestmark = pytest.mark.integration
+
 SEED = 42
 
 

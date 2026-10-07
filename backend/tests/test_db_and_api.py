@@ -1,3 +1,4 @@
+import pytest
 from alembic import command
 from alembic.autogenerate import compare_metadata
 from alembic.config import Config
@@ -6,6 +7,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, inspect
 
 from app.db import Base
+
+pytestmark = pytest.mark.integration
 
 EXPECTED_TABLES = {
     "incidents",

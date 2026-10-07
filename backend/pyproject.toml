@@ -32,6 +32,12 @@ include = ["app*"]
 testpaths = ["tests"]
 addopts = "--basetemp=.pytest_tmp"
 pythonpath = ["."]
+# Every test has exactly one category (tests/conftest.py assigns and checks it; docs/testing.md).
+markers = [
+    "unit: one module or class with in-memory inputs; no database, HTTP app, AWS mock or dataset",
+    "integration: several components together, in-process (database, API app, moto, dataset)",
+    "e2e: the running system through its external interface (separate server process, HTTP)",
+]
 
 [tool.ruff]
 line-length = 100

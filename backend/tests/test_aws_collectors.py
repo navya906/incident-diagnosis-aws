@@ -45,6 +45,8 @@ from app.offline.dataset import generate_dataset
 from app.offline.replay import ReplayCollector
 from app.offline.topology import build_topology
 
+pytestmark = pytest.mark.integration
+
 REPO = Path(__file__).resolve().parents[2]
 
 
