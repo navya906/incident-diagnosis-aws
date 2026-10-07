@@ -3,13 +3,16 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /srv
 
+# Dependencies come from backend/pyproject.toml only (DECISIONS D14). The metadata is installed
+# first so this layer is cached until the dependency list changes.
 COPY backend/pyproject.toml ./backend/pyproject.toml
-RUN pip install --no-cache-dir "fastapi>=0.115" "uvicorn[standard]>=0.30" "pydantic>=2.7" \
-    pydantic-settings pyyaml "sqlalchemy>=2.0" "alembic>=1.13" "psycopg[binary]>=3.1" \
-    numpy pandas scikit-learn networkx
+RUN mkdir -p backend/app && touch backend/app/__init__.py \
+    && pip install --no-cache-dir "./backend[rag]" \
+    && pip uninstall -y cloud-incident-diagnosis
 
 COPY backend ./backend
 COPY config ./config
+RUN pip install --no-cache-dir --no-deps ./backend
 WORKDIR /srv/backend
 
 EXPOSE 8000

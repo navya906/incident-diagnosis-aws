@@ -13,3 +13,9 @@ data/generated/
 
 # Experiment results: large and regenerable from the experiment id (python -m app.experiments verify)
 docs/experiments/runs/*/results.jsonl
+data/demo/
+frontend/node_modules/
+frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+frontend/*.tsbuildinfo

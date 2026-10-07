@@ -651,6 +651,7 @@ def _all_api_calls(iid="inc-0000000000"):
         ("get", f"/api/incidents/{iid}/diagnoses"),
         ("get", f"/api/incidents/{iid}/diagnosis"),
         ("get", "/api/jobs/job-1"),
+        ("get", "/api/offline/incidents"),
         ("post", "/api/offline/import"),
         ("get", "/api/metrics/lifecycle"),
         ("get", "/api/audit"),
@@ -804,3 +805,26 @@ def test_audit_rows_exist_in_db(client):
     client.post("/api/incidents", json=native(), headers=H)
     with client.app.state.sessions() as s:
         assert s.scalars(select(AuditLog)).first() is not None
+
+
+def test_offline_listing_and_enriched_diagnosis(client, dataset):
+    listing = client.get("/api/offline/incidents?split=dev", headers=H).json()
+    assert listing["items"] and all(i["split"] == "dev" for i in listing["items"])
+    assert set(listing["items"][0]) == {"incident_id", "split", "title", "alarm_time"}
+    assert "category" not in json.dumps(listing) and "taxonomy" not in json.dumps(listing)
+    assert client.get("/api/offline/incidents?split=prod", headers=H).status_code == 422
+    iid = import_dev(client, dataset, 3)
+    job = client.post(f"/api/incidents/{iid}/diagnose", json={"samples": 0}, headers=H).json()
+    assert wait_job(client, job["job_id"])["status"] == "SUCCEEDED"
+    d = client.get(f"/api/incidents/{iid}/diagnosis", headers=H).json()
+    cited = [e["evidence_id"] for e in d["diagnosis"]["supporting_evidence"]]
+    assert cited and set(cited) <= set(d["evidence_events"])
+    for evd in cited:
+        assert d["evidence_events"][evd]["event_id"] and d["evidence_events"][evd]["timestamp"]
+    path = d["dependency_path"]
+    root = d["diagnosis"]["root_cause"]["resource_id"]
+    assert path[0] == root and path[-1] in d["diagnosis"]["impact_analysis"]["resources"] + [
+        r for r in client.get(f"/api/incidents/{iid}", headers=H).json()["affected_resources"]
+    ]
+    items = client.get(f"/api/incidents/{iid}/diagnoses", headers=H).json()["items"]
+    assert items[0]["evidence_events"] == d["evidence_events"]

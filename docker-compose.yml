@@ -22,6 +22,8 @@ services:
     environment:
       CLOUDDIAG_DATABASE_URL: postgresql+psycopg://clouddiag:clouddiag@db:5432/clouddiag
       CLOUDDIAG_CONFIG_FILE: /srv/config/default.yaml
+      # API keys from your shell or .env (JSON list); without keys every /api call is refused.
+      CLOUDDIAG_API__API_KEYS: ${CLOUDDIAG_API__API_KEYS:-[]}
     depends_on:
       db:
         condition: service_healthy
@@ -34,9 +36,10 @@ services:
       retries: 10
 
   frontend:
-    image: nginx:alpine
-    volumes:
-      - ./frontend:/usr/share/nginx/html:ro
+    build: ./frontend
+    depends_on:
+      api:
+        condition: service_healthy
     ports:
       - "3000:80"
 
