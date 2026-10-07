@@ -25,6 +25,10 @@ class LLMResponse(BaseModel):
 class LLMClient(ABC):
     """OpenAI-compatible, Gemini, and the deterministic LOCAL-ONLY stub implement this."""
 
+    #: True when calls send data outside this process. External implementations are wrapped
+    #: with redaction (`app.ai.redaction`); only in-process implementations may set False.
+    is_external: bool = True
+
     @property
     @abstractmethod
     def model_name(self) -> str: ...

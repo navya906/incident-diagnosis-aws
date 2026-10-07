@@ -18,6 +18,8 @@ EXPECTED_TABLES = {
     "historical_incidents",
     "evaluation_runs",
     "experiment_results",
+    "vector_indexes",
+    "vector_items",
 }
 
 

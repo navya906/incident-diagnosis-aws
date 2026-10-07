@@ -1,10 +1,10 @@
 """Phase 4: dependency graph, investigation windows, temporal ranking, event chains, candidate
 causes and evidence ranking."""
 
-import sys
 from datetime import UTC, datetime, timedelta
 
 import pytest
+from isolation import imported_llm_modules
 
 from app.config import CorrelationSettings, EvidenceSettings, Settings
 from app.contracts.anomaly import Anomaly
@@ -582,7 +582,7 @@ def test_pipeline_runs_offline_and_ablations_remove_context(dataset):
     assert a3.anomalies is None and a3.onset == collector.incident(iid).alarm_time
     a4 = p.run_offline(collector, iid, use_chains=False)
     assert a4.correlation is None
-    assert not [m for m in sys.modules if m.startswith(("app.ai", "openai", "google.generativeai"))]
+    assert imported_llm_modules("app.evidence.pipeline", "app.evaluation.evidence_eval") == []
 
 
 def test_gate_red_herrings_never_become_candidate_causes_on_dev(dataset):

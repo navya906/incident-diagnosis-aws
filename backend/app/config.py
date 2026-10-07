@@ -91,7 +91,18 @@ class DiagnosisSettings(BaseModel):
 
 
 class RedactionSettings(BaseModel):
+    """Applied before ANY external LLM or embedding call (app/ai/redaction.py)."""
+
     enabled: bool = True
+    account_ids: bool = True
+    arns: bool = True
+    ips: bool = True
+    principals: bool = True  # IAM users/roles/sessions, unique ids, access key ids, emails
+    secrets: bool = True  # key=value secrets, bearer tokens, JWTs, private keys, URL passwords
+    hostnames: bool = True  # *.amazonaws.com / *.compute.internal endpoints
+    resource_names: bool = False  # canonical ids like rds/db-1c1d -> rds/RESOURCE_1
+    #: Refuse to send text that still contains any raw value the redactor replaced.
+    strict: bool = True
 
 
 class LLMSettings(BaseModel):
@@ -102,8 +113,39 @@ class LLMSettings(BaseModel):
 
 
 class EmbeddingSettings(BaseModel):
-    provider: str = "sentence_transformers"
+    """One embedding model per vector index (model name and dimension stored with the index)."""
+
+    provider: str = "sentence_transformers"  # sentence_transformers | hashing | openai | gemini
     model: str = "all-MiniLM-L6-v2"
+    dimension: int = Field(default=384, ge=8)  # used by `hashing`; others report their own
+    base_url: str | None = None  # OpenAI-compatible endpoint (also local servers)
+    api_key: SecretStr | None = None  # env only: CLOUDDIAG_EMBEDDINGS__API_KEY
+    batch_size: int = Field(default=64, ge=1)
+    timeout_seconds: float = Field(default=30.0, gt=0)
+
+
+class VectorStoreSettings(BaseModel):
+    backend: str = "faiss"  # faiss (numpy exact search when faiss is not installed) | pgvector
+    path: str | None = None  # directory for the faiss/numpy store; None = in memory
+
+
+class RerankWeights(BaseModel):
+    similarity: float = Field(default=0.7, ge=0)  # embedding cosine
+    signals: float = Field(default=0.2, ge=0)  # Jaccard of metric / API-call / log vocabularies
+    context: float = Field(default=0.1, ge=0)  # same alarm metric and resource types
+
+
+class RagSettings(BaseModel):
+    """Historical-incident retrieval. The knowledge base never contains test incidents."""
+
+    enabled: bool = True
+    corpus_version: str = "historical-v1"
+    corpus_seed: int = 7
+    index_name: str = "historical"
+    candidates: int = Field(default=20, ge=1)  # nearest neighbours before re-ranking
+    top_k: int = Field(default=3, ge=1)
+    min_score: float = 0.0
+    rerank: RerankWeights = Field(default_factory=RerankWeights)
 
 
 class ZScoreParams(BaseModel):
@@ -195,6 +237,8 @@ class Settings(BaseSettings):
     redaction: RedactionSettings = Field(default_factory=RedactionSettings)
     llm: LLMSettings = Field(default_factory=LLMSettings)
     embeddings: EmbeddingSettings = Field(default_factory=EmbeddingSettings)
+    vector_store: VectorStoreSettings = Field(default_factory=VectorStoreSettings)
+    rag: RagSettings = Field(default_factory=RagSettings)
     anomaly: AnomalySettings = Field(default_factory=AnomalySettings)
     aws: AwsSettings = Field(default_factory=AwsSettings)
     api: ApiSettings = Field(default_factory=ApiSettings)

@@ -46,7 +46,15 @@ diagnosis:
   self_consistency_samples: 5
 
 redaction:
-  enabled: true   # applied before ANY external LLM call
+  enabled: true          # applied before ANY external LLM or embedding call (app/ai/redaction.py)
+  account_ids: true
+  arns: true
+  ips: true
+  principals: true       # IAM users/roles/sessions, unique ids, access key ids, emails
+  secrets: true          # key=value secrets, bearer tokens, JWTs, private keys, URL passwords
+  hostnames: true        # *.amazonaws.com / *.compute.internal
+  resource_names: false  # canonical ids (rds/db-1c1d) stay readable so citations can be checked
+  strict: true           # refuse to send text that still contains a replaced raw value
 
 llm:
   provider: stub            # stub (LOCAL-ONLY) | openai_compatible | gemini
@@ -55,8 +63,29 @@ llm:
   # API keys come from env only (CLOUDDIAG_LLM__API_KEY); never put them in this file.
 
 embeddings:
-  provider: sentence_transformers   # sentence_transformers | openai | gemini
+  # sentence_transformers needs `pip install -e ".[embeddings]"`; hashing is LOCAL-ONLY (no
+  # download); openai / gemini are external and always pass through redaction.
+  provider: sentence_transformers   # sentence_transformers | hashing | openai | gemini
   model: all-MiniLM-L6-v2
+  dimension: 384                    # hashing only; other providers report their own
+  base_url: null                    # OpenAI-compatible endpoint
+  batch_size: 64
+  timeout_seconds: 30
+  # API keys come from env only (CLOUDDIAG_EMBEDDINGS__API_KEY).
+
+vector_store:
+  backend: faiss     # faiss (numpy exact search if faiss-cpu is not installed) | pgvector
+  path: null         # directory for the faiss store; null = in memory
+
+rag:
+  enabled: true
+  corpus_version: historical-v1   # separate corpus: own seed and scenario keys, never test cases
+  corpus_seed: 7
+  index_name: historical
+  candidates: 20                  # nearest neighbours before re-ranking
+  top_k: 3
+  min_score: 0.0
+  rerank: {similarity: 0.7, signals: 0.2, context: 0.1}
 
 anomaly:
   # Statistical detectors only (no LLM). Windows are in minutes, so they adapt to 60 s or 300 s data.

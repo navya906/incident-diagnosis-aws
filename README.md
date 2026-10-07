@@ -5,7 +5,7 @@ telemetry, reasoning over AWS dependencies, retrieving similar past incidents, a
 structured, evidence-cited root-cause diagnosis, then measuring honestly whether each component helps.
 
 > Read `BRIEF.md` (the spec), `PROGRESS.md` (where we are) and `DECISIONS.md` (why things are the way
-> they are) **before** you touch anything. Current status: **Phases 0 to 4 done**, gates passed.
+> they are) **before** you touch anything. Current status: **Phases 0 to 5 done**, gates passed.
 
 ## 1. Requirements
 
@@ -22,7 +22,7 @@ Python libraries are declared in `backend/pyproject.toml` (single source of trut
 FastAPI, Uvicorn, Pydantic v2 + pydantic-settings, SQLAlchemy 2, Alembic, psycopg 3, NumPy, pandas,
 scikit-learn, NetworkX, PyYAML. Dev extra: pytest, httpx, ruff. `aws` extra: boto3, moto (needed for the Phase 2 tests).
 PyYAML is also used by tests to parse the CloudFormation template.
-Planned later: SentenceTransformers, FAISS, pgvector client (Phases 5+).
+`rag` extra: faiss-cpu (without it the vector store falls back to NumPy exact search). `embeddings` extra: sentence-transformers (pulls PyTorch; the configured default embedder; offline runs can use the LOCAL-ONLY `hashing` embedder instead). pgvector needs no Python client (the column type is built in, `app/db/types.py`).
 
 ## 2. Setup (virtual environment)
 
@@ -34,7 +34,7 @@ cd backend
 py -3.11 -m venv .venv        # or: python -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-pip install -e ".[dev,aws]"
+pip install -e ".[dev,aws,rag]"
 ```
 
 **macOS / Linux**
@@ -43,7 +43,7 @@ cd backend
 python3.11 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-pip install -e ".[dev,aws]"
+pip install -e ".[dev,aws,rag]"
 ```
 
 Or run the helper, which does the same: `scripts/setup.ps1` (Windows) or `scripts/setup.sh` (macOS/Linux).
@@ -64,6 +64,8 @@ Run from `backend/` with the venv active.
 | Capture a real incident (read-only AWS) | `python -m app.collectors.capture --seed-arn <arn> --start ... --end ... --title ... --description ... --out ../data/captured` (see `docs/aws-setup.md`) |
 | Compare anomaly detectors (dev split) | `python -m app.evaluation.anomaly_eval [--sweep]` (writes `docs/experiments/`) |
 | Evaluate evidence ranking and candidate causes (dev split) | `python -m app.evaluation.evidence_eval [--tune]` (writes `docs/experiments/`) |
+| Build the historical-incident corpus | `python -m app.rag.corpus` (writes `data/generated/historical-v1`, git-ignored) |
+| Evaluate historical retrieval + leakage (dev split) | `python -m app.evaluation.retrieval_eval --embedder hashing` (writes `docs/experiments/`) |
 | Fault-injection plan (dry run) | `python -m app.offline.fault_injection --stack <name> --fault <fault>` |
 | Run API locally (needs a DB, or SQLite URL) | `uvicorn app.main:app --reload` |
 | Apply migrations | `alembic upgrade head` |
@@ -111,8 +113,12 @@ backend/
     correlation/  Phase 4: investigation windows, onset/temporal ranking, event chains,
                   candidate causes
     evidence/     Phase 4: evidence ranking (Section 2 score), semantic scorer, pipeline
-    evaluation/   experiment evaluation (Phase 3: detector comparison; Phase 4: evidence P/R@K)
-    baselines/ ai/   filled in by later phases
+    ai/           Phase 5: redaction (pseudonyms, strict check, redacting LLM wrapper)
+    rag/          Phase 5: embedders, vector stores (FAISS/NumPy, pgvector), historical corpus,
+                  knowledge base with leakage guard, retrieval + re-ranking, prompt guidance
+    evaluation/   experiment evaluation (Phase 3: detector comparison; Phase 4: evidence P/R@K;
+                  Phase 5: historical retrieval)
+    baselines/    filled in by Phase 7
 frontend/                              placeholder until Phase 9
 infra/                                 real test stack, fault injection, read-only IAM policy
 docs/                                  dataset and AWS docs; docs/experiments/ holds generated results

@@ -37,8 +37,16 @@ class VectorStore(ABC):
         """Add vectors. Raises ValueError if model_name or dimension mismatches the index."""
 
     @abstractmethod
-    def search(self, index: str, vector: list[float], k: int, model_name: str) -> list[SearchHit]:
-        """Top-k by similarity. Raises ValueError on model/dimension mismatch."""
+    def search(
+        self,
+        index: str,
+        vector: list[float],
+        k: int,
+        model_name: str,
+        exclude_ids: set[str] | None = None,
+    ) -> list[SearchHit]:
+        """Top-k by cosine similarity, never returning `exclude_ids` (leave-one-out).
+        Raises ValueError on model/dimension mismatch."""
 
     @abstractmethod
     def ids(self, index: str) -> set[str]: ...

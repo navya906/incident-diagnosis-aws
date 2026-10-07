@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import math
 import random
-import sys
 from datetime import UTC, datetime, timedelta
 
 import pytest
+from isolation import imported_llm_modules
 
 from app.anomaly.detectors import (
     METHODS,
@@ -250,7 +250,7 @@ def test_service_runs_all_methods_on_events_and_uses_no_llm(tmp_path):
     out = AnomalyService(AnomalySettings()).detect(events)
     assert {a.method for a in out} >= {"zscore", "mad", "moving_average"}
     assert out == sorted(out, key=lambda a: (a.timestamp, a.resource_id, a.metric, a.method))
-    assert not [m for m in sys.modules if m.startswith(("app.ai", "openai", "google.generativeai"))]
+    assert imported_llm_modules("app.anomaly.service", "app.evaluation.anomaly_eval") == []
 
 
 # ------------------------------------------------------------------ evaluation

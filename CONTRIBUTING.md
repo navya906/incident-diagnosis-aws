@@ -2,7 +2,7 @@
 
 ## Before you start
 - [ ] `git pull` and read `PROGRESS.md`, `DECISIONS.md`, the current phase in `BRIEF.md`
-- [ ] venv active (`backend/.venv`), `pip install -e ".[dev]"` done
+- [ ] venv active (`backend/.venv`), `pip install -e ".[dev,aws,rag]"` done
 - [ ] `pytest -q` and `ruff check .` pass on a clean checkout
 
 ## While working

@@ -162,7 +162,8 @@ RQ6 experiments: sweep K ∈ {5, 10, 20, 40}, time window ∈ {5, 15, 30, 60 min
 | 2 Real AWS collectors | Implemented, gate passed (moto/Stubber tests, contract test vs replay, IAM policy, setup guide). Not yet run against a real account. |
 | 3 Anomaly detection | Implemented, gate passed (5 detectors, dev comparison table labelled synthetic, unit tests per method). |
 | 4 Correlation, graph, evidence ranking | Implemented, gate passed (dev evidence P/R@K table labelled synthetic and in-sample; chain tests incl. red herrings). |
-| 5 to 10 | Not started. |
+| 5 Redaction, embeddings, historical RAG | Implemented, gate passed (retrieval, leakage and redaction tests; pgvector verified on PostgreSQL 16). |
+| 6 to 10 | Not started. |
 
 Amendments (details in DECISIONS.md):
 - Python target is `>=3.11` (dev machine runs 3.12; Docker image uses 3.11).
@@ -174,3 +175,4 @@ Amendments (details in DECISIONS.md):
 - Phase 2: per-source event schema added to the contract (D31); canonical ids from ARNs (D32); simulator stats aligned with real CloudWatch (D35).
 - Phase 3: no contract change; detectors use trailing minute-based windows (D41); textbook thresholds kept as defaults and the dev sweep recorded (D46).
 - Phase 4: contracts added for correlation outputs, `EvidenceRanking` and stable evidence ids (D56); failure impact uses a derived impact graph (D49); chains and candidate causes do not feed the evidence score (D52); evidence weights and detector threshold chosen on dev (D55).
+- Phase 5: `is_external` flag on `LLMClient`/`Embedder` and `exclude_ids` on `VectorStore.search` (D60, D61); historical-record contracts, vector tables and migration 0002 added (D61, D62); the configured default embedder (SentenceTransformers) is an optional extra and the reported results use the LOCAL-ONLY hashing embedder (D60).
