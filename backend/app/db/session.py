@@ -10,7 +10,10 @@ from app.config import get_settings
 
 def make_engine(url: str | None = None) -> Engine:
     url = url or get_settings().database_url
-    connect_args = {} if url.startswith("sqlite") else {"connect_timeout": 3}
+    # SQLite connections are used by the API worker threads too (diagnosis jobs).
+    connect_args = (
+        {"check_same_thread": False} if url.startswith("sqlite") else {"connect_timeout": 3}
+    )
     return create_engine(url, pool_pre_ping=True, connect_args=connect_args)
 
 

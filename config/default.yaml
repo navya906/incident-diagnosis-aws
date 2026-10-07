@@ -149,4 +149,19 @@ aws:
   cache_ttl_seconds: 3600
 
 api:
-  api_keys: []   # set via env CLOUDDIAG_API__API_KEYS (JSON list)
+  # Keys come from env only: CLOUDDIAG_API__API_KEYS='["<key1>","<key2>"]'. With no keys every
+  # /api request is rejected (fail closed). Send as `X-API-Key: <key>` or HTTP Basic password.
+  api_keys: []
+  auth_disabled: false            # local development only; refused in aws mode
+  rate_limit_per_minute: 120      # token bucket per key (per client IP for failed attempts)
+  rate_limit_burst: 30
+  max_body_bytes: 2000000
+  max_events_per_request: 5000
+  job_workers: 2                  # threads running diagnosis jobs
+  verify_sns_signature: true      # SNS webhook: certificate only from sns.<region>.amazonaws.com
+  allowed_sns_topic_arns: []      # empty = any topic
+  window_before_minutes: 60       # collection window around an alarm without explicit window
+  window_after_minutes: 30
+  redact_secrets_in_responses: true
+  dataset_dir: null               # offline dataset for imports (null = data/generated/synthetic-v1)
+  corpus_dir: null                # historical corpus (null = data/generated/historical-v1)
