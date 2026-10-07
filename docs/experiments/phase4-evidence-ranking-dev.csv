@@ -1,0 +1,32 @@
+table,category,config,window_min,k,precision,recall,window_coverage,red_herring_rate,incidents,mean_gt_items
+ablations,,Full,30,10,0.406,0.601,1.0,0.0,82,7.07
+ablations,,A2 no dependency graph,30,10,0.356,0.525,1.0,0.5,82,7.07
+ablations,,A3 no anomaly detection,30,10,0.187,0.263,1.0,0.0,82,7.07
+ablations,,A4 no temporal (weight 0),30,10,0.404,0.599,1.0,0.0,82,7.07
+ablations,,A5 recency (no ranking),30,10,0.009,0.014,1.0,0.0,82,7.07
+ablations,,minus resource,30,10,0.406,0.601,1.0,0.0,82,7.07
+ablations,,minus semantic,30,10,0.36,0.529,1.0,0.0,82,7.07
+ablations,,only temporal,30,10,0.093,0.134,1.0,0.0,82,7.07
+ablations,,only resource,30,10,0.0,0.0,1.0,0.0,82,7.07
+ablations,,only anomaly,30,10,0.327,0.488,1.0,0.375,82,7.07
+ablations,,only semantic,30,10,0.18,0.267,1.0,0.0,82,7.07
+ablations,,only dependency,30,10,0.0,0.0,1.0,0.0,82,7.07
+by_category,standard,Full,30,10,0.396,0.609,1.0,,70,6.66
+by_category,red_herring,Full,30,10,0.4,0.617,1.0,0.0,8,6.88
+by_category,compound,Full,30,10,0.6,0.422,1.0,,4,14.75
+grid,,Full,5,5,0.346,0.252,0.727,0.0,82,7.07
+grid,,Full,5,10,0.321,0.473,0.727,0.0,82,7.07
+grid,,Full,5,20,0.194,0.569,0.727,0.0,82,7.07
+grid,,Full,5,40,0.114,0.593,0.727,0.125,82,7.07
+grid,,Full,15,5,0.395,0.291,0.997,0.0,82,7.07
+grid,,Full,15,10,0.407,0.603,0.997,0.0,82,7.07
+grid,,Full,15,20,0.272,0.78,0.997,0.0,82,7.07
+grid,,Full,15,40,0.15,0.815,0.997,0.25,82,7.07
+grid,,Full,30,5,0.385,0.282,1.0,0.0,82,7.07
+grid,,Full,30,10,0.406,0.601,1.0,0.0,82,7.07
+grid,,Full,30,20,0.273,0.782,1.0,0.0,82,7.07
+grid,,Full,30,40,0.145,0.818,1.0,0.25,82,7.07
+grid,,Full,60,5,0.378,0.276,1.0,0.0,82,7.07
+grid,,Full,60,10,0.406,0.601,1.0,0.0,82,7.07
+grid,,Full,60,20,0.27,0.771,1.0,0.0,82,7.07
+grid,,Full,60,40,0.143,0.818,1.0,0.0,82,7.07

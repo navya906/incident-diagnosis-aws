@@ -6,14 +6,40 @@ log_json: false
 database_url: postgresql+psycopg://clouddiag:clouddiag@localhost:5432/clouddiag
 
 evidence:
+  # score = w_t*temporal + w_r*resource + w_a*anomaly + w_s*semantic + w_d*dependency (each in [0,1]).
+  # Weights, detector and threshold were chosen on the dev split only (DECISIONS D55).
   top_k: 10
-  window_minutes: 30
+  window_minutes: 30            # look-back before the alarm; sweeps use window_options
+  window_options: [5, 15, 30, 60]
+  post_alarm_minutes: 10        # effects and late logs that trail the alarm
   weights:
-    temporal: 0.25
-    resource: 0.20
-    anomaly: 0.25
-    semantic: 0.15
-    dependency: 0.15
+    temporal: 0.15
+    resource: 0.0               # alarmed-resource match; 0 on dev (alarms sit on the symptom side)
+    anomaly: 0.3
+    semantic: 0.3
+    dependency: 0.3
+  anomaly_method: zscore        # detector for the anomaly component and the onset estimate
+  anomaly_threshold: 6.0        # null = the anomaly section's threshold for that method
+  temporal_tau_before_minutes: 5.0
+  temporal_tau_after_minutes: 10.0
+  max_per_group: 2              # items per metric series / log template / API call; 0 = no cap
+  group_member_ratio: 0.9
+  event_priors:                 # anomaly component for events without a numeric anomaly
+    change: 0.7
+    api_error: 0.9
+    read_only: 0.0
+    error_log: 0.6
+    warning_log: 0.3
+    info_log: 0.05
+
+correlation:
+  # Signals -> links (same resource or impact path, time-ordered) -> chains -> candidate causes.
+  max_link_gap_minutes: 10.0
+  max_link_hops: 3
+  min_anomaly_run_points: 2
+  onset_lookback_minutes: 15.0
+  max_candidate_causes: 5
+  signal_strength: {change: 1.0, api_error: 0.9, anomaly: 0.6, error_log: 0.5, warning_log: 0.3}
 
 diagnosis:
   review_confidence_threshold: 0.6   # below this => requires_human_review

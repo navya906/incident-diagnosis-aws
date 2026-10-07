@@ -23,10 +23,66 @@ def default_config_path() -> Path:
     return Path(os.environ.get("CLOUDDIAG_CONFIG_FILE", _REPO_ROOT / "config" / "default.yaml"))
 
 
+#: Anomaly-component prior for events that have no numeric anomaly (BRIEF Section 2).
+DEFAULT_EVENT_PRIORS: dict[str, float] = {
+    "change": 0.7,  # mutating CloudTrail call or AWS Config change (deployments, config edits)
+    "api_error": 0.9,  # CloudTrail call that failed (errorCode set, e.g. AccessDenied)
+    "read_only": 0.0,  # Describe*/Get*/List* calls
+    "error_log": 0.6,
+    "warning_log": 0.3,
+    "info_log": 0.05,
+}
+
+
 class EvidenceSettings(BaseModel):
+    """Evidence ranking: score = weighted sum of five components in [0, 1] (BRIEF Section 2)."""
+
     top_k: int = Field(default=10, ge=1)
     window_minutes: int = Field(default=30, ge=1)
-    weights: ScoreWeights = Field(default_factory=ScoreWeights)
+    #: Investigation windows offered for sweeps (RQ6); `window_minutes` is the one in use.
+    window_options: list[int] = Field(default_factory=lambda: [5, 15, 30, 60])
+    #: Minutes after the alarm still included (effects and late logs trail the alarm).
+    post_alarm_minutes: int = Field(default=10, ge=0)
+    #: Tuned on the dev split (DECISIONS D55); `ScoreWeights()` keeps the Phase 0 placeholders.
+    weights: ScoreWeights = Field(
+        default_factory=lambda: ScoreWeights(
+            temporal=0.15, resource=0.0, anomaly=0.3, semantic=0.3, dependency=0.3
+        )
+    )
+    #: Detector used for the anomaly component and onset estimate; threshold None = its default.
+    anomaly_method: str = "zscore"
+    anomaly_threshold: float | None = 6.0  # dev choice (D55); None = the detector's default
+    #: Temporal component: exp decay from the estimated onset (minutes), faster after onset.
+    temporal_tau_before_minutes: float = Field(default=5.0, gt=0)
+    temporal_tau_after_minutes: float = Field(default=10.0, gt=0)
+    #: At most this many items from one group (metric series, log template, API call, resource
+    #: config) in the top-K, so one noisy series cannot fill the list. 0 disables the cap.
+    max_per_group: int = Field(default=2, ge=0)
+    #: Group members within this fraction of the group's best score are eligible; the earliest
+    #: eligible members are taken (first occurrences carry the information).
+    group_member_ratio: float = Field(default=0.9, gt=0, le=1)
+    event_priors: dict[str, float] = Field(default_factory=lambda: dict(DEFAULT_EVENT_PRIORS))
+
+
+class CorrelationSettings(BaseModel):
+    """Signals, event chains and candidate causes (temporal precedence + dependency path)."""
+
+    max_link_gap_minutes: float = Field(default=10.0, gt=0)
+    max_link_hops: int = Field(default=3, ge=1)
+    min_anomaly_run_points: int = Field(default=2, ge=1)
+    #: Onset estimate: anomaly runs active at the alarm that started at most this long before it.
+    onset_lookback_minutes: float = Field(default=15.0, gt=0)
+    max_candidate_causes: int = Field(default=5, ge=1)
+    #: Strength of each signal kind when ranking candidate causes.
+    signal_strength: dict[str, float] = Field(
+        default_factory=lambda: {
+            "change": 1.0,
+            "api_error": 0.9,
+            "anomaly": 0.6,
+            "error_log": 0.5,
+            "warning_log": 0.3,
+        }
+    )
 
 
 class DiagnosisSettings(BaseModel):
@@ -134,6 +190,7 @@ class Settings(BaseSettings):
     log_json: bool = False
     database_url: str = "postgresql+psycopg://clouddiag:clouddiag@localhost:5432/clouddiag"
     evidence: EvidenceSettings = Field(default_factory=EvidenceSettings)
+    correlation: CorrelationSettings = Field(default_factory=CorrelationSettings)
     diagnosis: DiagnosisSettings = Field(default_factory=DiagnosisSettings)
     redaction: RedactionSettings = Field(default_factory=RedactionSettings)
     llm: LLMSettings = Field(default_factory=LLMSettings)

@@ -7,7 +7,10 @@ from app.logging_config import SecretFilter, scrub
 def test_defaults_load_from_yaml():
     s = Settings()
     assert s.evidence.top_k == 10
-    assert s.evidence.weights.temporal == 0.25
+    assert s.evidence.weights.temporal == 0.15
+    assert s.evidence.weights.resource == 0.0
+    assert s.evidence.anomaly_threshold == 6.0
+    assert s.correlation.max_candidate_causes == 5
     assert s.llm.provider == "stub"
 
 
