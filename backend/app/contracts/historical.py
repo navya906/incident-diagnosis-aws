@@ -15,7 +15,8 @@ class HistoricalRecord(BaseModel):
 
     incident_id: str
     corpus_version: str
-    source: Literal["historical_corpus", "dataset_dev", "real_capture"]
+    #: "distractor" = adversarial entry built for an evaluation condition (D71), never real data.
+    source: Literal["historical_corpus", "dataset_dev", "real_capture", "distractor"]
     title: str
     search_text: str
     summary: str

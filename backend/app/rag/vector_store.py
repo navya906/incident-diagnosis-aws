@@ -144,6 +144,18 @@ class LocalVectorStore(VectorStore):
     def ids(self, index: str) -> set[str]:
         return set(self._get(index).ids)
 
+    def clone(self) -> LocalVectorStore:
+        """Independent in-memory copy (vectors are copied, not re-embedded)."""
+        other = LocalVectorStore(use_faiss=self.use_faiss)
+        for name, idx in self._indexes.items():
+            m = idx.meta
+            other.create_index(m.name, m.model_name, m.dimension)
+            if idx.ids:
+                other.add(
+                    name, list(idx.ids), idx.matrix, [dict(p) for p in idx.payloads], m.model_name
+                )
+        return other
+
     # ------------------------------------------------------------------ persistence
     def save(self, path: str | Path | None = None) -> Path:
         root = Path(path) if path else self.path

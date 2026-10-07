@@ -400,7 +400,7 @@ class StubLLM(LLMClient):
             "supporting_evidence": [
                 {
                     "evidence_id": ln["evd"],
-                    "explanation": f"{ln['tag']} on {ln['resource']} (symptom only)",
+                    "explanation": f"{ln['tag']} on {ln['resource']}: {_trim(ln['text'])}",
                     "label": "FACT",
                 }
                 for ln in evidence_lines[:1]

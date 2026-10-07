@@ -1,0 +1,63 @@
+{
+  "meta": {
+    "label": "smoke-test / synthetic",
+    "split": "dev",
+    "dataset_version": "synthetic-v1",
+    "content_sha256": "06cec245b951be8e9b08524367439b5ee3d37fa75d6551d3bb8e2922d8388f8b"
+  },
+  "clean": {
+    "answers": 86,
+    "false_positives": 0,
+    "false_positive_rate": 0.0
+  },
+  "injections": [
+    {
+      "kind": "fabricated_id",
+      "injected": 86,
+      "detected": 86,
+      "rejected_strict": 86,
+      "detection_rate": 1.0,
+      "rejection_rate_strict": 1.0
+    },
+    {
+      "kind": "historical_id",
+      "injected": 86,
+      "detected": 86,
+      "rejected_strict": 86,
+      "detection_rate": 1.0,
+      "rejection_rate_strict": 1.0
+    },
+    {
+      "kind": "wrong_value",
+      "injected": 86,
+      "detected": 86,
+      "rejected_strict": 86,
+      "detection_rate": 1.0,
+      "rejection_rate_strict": 1.0
+    },
+    {
+      "kind": "unsupported_claim",
+      "injected": 86,
+      "detected": 82,
+      "rejected_strict": 82,
+      "detection_rate": 0.9535,
+      "rejection_rate_strict": 0.9535
+    },
+    {
+      "kind": "wrong_resource",
+      "injected": 84,
+      "detected": 84,
+      "rejected_strict": 84,
+      "detection_rate": 1.0,
+      "rejection_rate_strict": 1.0
+    },
+    {
+      "kind": "uncited_conclusion",
+      "injected": 84,
+      "detected": 84,
+      "rejected_strict": 84,
+      "detection_rate": 1.0,
+      "rejection_rate_strict": 1.0
+    }
+  ]
+}

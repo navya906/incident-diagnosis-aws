@@ -48,6 +48,11 @@ class AttemptRecord(BaseModel):
     completion_tokens: int = 0
     latency_ms: float = 0.0
     cost_usd: float = 0.0
+    #: Model id the provider reported (exact version for real APIs).
+    model: str = ""
+    #: Citation check of this attempt's output (hallucination rate uses the first attempt).
+    cited: int = 0
+    unsupported: int = 0
 
 
 class SelfConsistency(BaseModel):
@@ -75,6 +80,9 @@ class DiagnosisResult(BaseModel):
     severity: SeverityAssessment
     llm_severity_suggestion: str | None = None  # advisory only
     retrieved_incident_ids: list[str] = Field(default_factory=list)
+    #: Evidence the pipeline put in front of the model, in rank order (event ids).
+    ranked_event_ids: list[str] = Field(default_factory=list)
+    context_mode: str = "ranked"
     context_sections: list[SectionStats] = Field(default_factory=list)
     context_evidence_ids: list[str] = Field(default_factory=list)
     context_tokens: int = 0
@@ -119,7 +127,12 @@ class DiagnosisEngine:
         st = self.settings.diagnosis
         resp = self._call(request, redactor)
         out = validate_output(
-            resp.text, ctx, retrieved, st.review_confidence_threshold, st.quote_tolerance
+            resp.text,
+            ctx,
+            retrieved,
+            st.review_confidence_threshold,
+            st.quote_tolerance,
+            st.reject_unsupported_claims,
         )
         attempts.append(self._record(kind, out, resp))
         if out.valid:
@@ -127,7 +140,12 @@ class DiagnosisEngine:
         repair = build_repair_request(request, resp.text, out.errors)
         resp2 = self._call(repair, redactor)
         out2 = validate_output(
-            resp2.text, ctx, retrieved, st.review_confidence_threshold, st.quote_tolerance
+            resp2.text,
+            ctx,
+            retrieved,
+            st.review_confidence_threshold,
+            st.quote_tolerance,
+            st.reject_unsupported_claims,
         )
         attempts.append(self._record(f"{kind}-repair", out2, resp2))
         if not out2.valid:
@@ -146,6 +164,9 @@ class DiagnosisEngine:
             completion_tokens=resp.completion_tokens,
             latency_ms=resp.latency_ms,
             cost_usd=resp.estimated_cost_usd,
+            model=resp.model,
+            cited=len(out.citation.cited),
+            unsupported=out.citation.unsupported,
         )
 
     # ------------------------------------------------------------------ main entry
@@ -163,8 +184,19 @@ class DiagnosisEngine:
         use_rag: bool = True,
         samples: int | None = None,
         investigation: Investigation | None = None,
+        context_mode: str = "ranked",
+        ranking_mode: str = "score",
+        weights=None,
+        window_minutes: int | None = None,
+        top_k: int | None = None,
+        retriever: HistoricalRetriever | None = None,
+        exclude_labels: set[str] | None = None,
     ) -> DiagnosisResult:
+        """`context_mode`: "ranked" (Phase 4 evidence, the normal path), "raw" (B3: raw
+        telemetry newest first under the same token budget) or "description" (B2)."""
         st = self.settings
+        if context_mode not in ("ranked", "raw", "description"):
+            raise ValueError(f"unknown context_mode {context_mode!r}")
         inv = investigation or self.pipeline.run(
             incident=incident,
             events=events,
@@ -173,9 +205,19 @@ class DiagnosisEngine:
             use_graph=use_graph,
             use_anomalies=use_anomalies,
             use_chains=use_chains,
+            ranking_mode=ranking_mode,
+            weights=weights,
+            window_minutes=window_minutes,
+            top_k=top_k,
         )
+        retriever = retriever or self.retriever
         retrieved = None
-        if use_rag and self.retriever is not None and st.diagnosis.use_historical:
+        if (
+            context_mode == "ranked"
+            and use_rag
+            and retriever is not None
+            and st.diagnosis.use_historical
+        ):
             extra = (
                 [c.rationale for c in inv.correlation.candidate_causes[:3]]
                 if inv.correlation
@@ -188,15 +230,20 @@ class DiagnosisEngine:
                 resources=resources,
                 extra_lines=extra,
             )
-            retrieved = self.retriever.retrieve(query)
-        ctx = self.context.build(
-            incident=incident,
-            events=events,
-            investigation=inv,
-            retrieved=retrieved,
-            include_graph=use_graph,
-            include_historical=retrieved is not None,
-        )
+            retrieved = retriever.retrieve(query, exclude_labels=exclude_labels)
+        if context_mode == "ranked":
+            ctx = self.context.build(
+                incident=incident,
+                events=events,
+                investigation=inv,
+                retrieved=retrieved,
+                include_graph=use_graph,
+                include_historical=retrieved is not None,
+            )
+        elif context_mode == "raw":
+            ctx = self.context.build_raw(incident=incident, events=events)
+        else:
+            ctx = self.context.build_description(incident=incident, events=events)
         redactor = Redactor(st.redaction) if isinstance(self.llm, RedactingLLMClient) else None
         attempts: list[AttemptRecord] = []
         primary_req = build_request(
@@ -251,6 +298,10 @@ class DiagnosisEngine:
             severity=severity,
             llm_severity_suggestion=d.severity_suggestion.value if d else None,
             retrieved_incident_ids=ctx.retrieved_ids,
+            ranked_event_ids=[i.event_id for i in inv.ranking.items]
+            if context_mode == "ranked"
+            else [r.event_id for r in ctx.evidence_index.values()],
+            context_mode=context_mode,
             context_sections=ctx.sections,
             context_evidence_ids=sorted(ctx.evidence_index),
             context_tokens=ctx.used_tokens,

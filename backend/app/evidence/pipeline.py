@@ -20,7 +20,7 @@ from app.contracts.evidence import EvidenceRanking, ScoreWeights
 from app.correlation.chains import CorrelationEngine
 from app.correlation.temporal import estimate_onset, find_alarm
 from app.correlation.windows import investigation_window
-from app.evidence.ranker import EvidenceRanker
+from app.evidence.ranker import EvidenceRanker, rank_by_recency
 from app.evidence.semantic import SemanticScorer
 from app.graph.builder import build_graph
 from app.graph.store import NetworkXGraphStore
@@ -102,9 +102,14 @@ class InvestigationPipeline:
         use_chains: bool = True,
         anomalies: list[Anomaly] | None = None,
         graph: NetworkXGraphStore | None = None,
+        ranking_mode: str = "score",
     ) -> Investigation:
         """Anomaly detection runs on all supplied events (the detector needs a trailing
-        baseline); only events inside the investigation window are ranked or chained."""
+        baseline); only events inside the investigation window are ranked or chained.
+        `ranking_mode="recency"` replaces the evidence score by the K most recent events
+        (ablation A5)."""
+        if ranking_mode not in ("score", "recency"):
+            raise ValueError(f"unknown ranking_mode {ranking_mode!r}")
         st = self.settings
         minutes = window_minutes or st.evidence.window_minutes
         if use_anomalies:
@@ -129,6 +134,32 @@ class InvestigationPipeline:
                 window=window,
                 onset=onset,
                 graph=graph,
+            )
+        if ranking_mode == "recency":
+            k = top_k or st.evidence.top_k
+            ranking = EvidenceRanking(
+                incident_id=incident.incident_id,
+                window_minutes=minutes,
+                onset_estimate=onset,
+                top_k=k,
+                weights=weights or st.evidence.weights,
+                candidates=0,
+                items=rank_by_recency(
+                    incident.incident_id,
+                    events,
+                    incident.alarm_time,
+                    minutes,
+                    k,
+                    st.evidence.post_alarm_minutes,
+                ),
+            )
+            return Investigation(
+                incident_id=incident.incident_id,
+                onset=onset,
+                anomalies=anomalies,
+                graph=graph,
+                correlation=correlation,
+                ranking=ranking,
             )
         ranking = self.ranker.rank(
             incident_id=incident.incident_id,

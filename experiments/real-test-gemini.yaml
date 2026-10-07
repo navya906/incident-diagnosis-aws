@@ -1,0 +1,43 @@
+# FINAL experiment on the held-out TEST split with Google Gemini.
+# Run once, after everything was frozen on dev. Requires --final.
+#   export CLOUDDIAG_LLM__API_KEY=...
+#   cd backend && python -m app.experiments plan --config ../experiments/real-test-gemini.yaml
+#   cd backend && python -m app.experiments run --config ../experiments/real-test-gemini.yaml --final
+name: real-test-gemini
+description: Final matrix on the test split. Cheaper plan (D86) - N=3 runs for baselines and Full, N=1 for ablations and RQ6 sweeps, self-consistency only for Full and B4.
+label: llm / synthetic incidents
+split: test
+runs: 3
+runs_ablations: 1
+runs_sweeps: 1
+seed: 0
+conditions: [B1, B2, B3, B4, Full, A1, A2, A3, A4, A5, Full-KB-fault-removed, Full-KB-distractors, Full-no-redaction]
+rq6:
+  k: [5, 10, 20, 40]
+  window: [5, 15, 30, 60]
+  evidence_types: [metrics, +cloudtrail, +logs, +config]
+self_consistency_samples: 5
+self_consistency_conditions: [Full, B4]
+# Pre-declared primary comparisons (D85). Fixed BEFORE the run; part of the experiment id.
+primary_comparisons:
+  - {condition: B2, vs: Full, metric: root_cause_correct}
+  - {condition: B3, vs: Full, metric: root_cause_correct}
+  - {condition: B4, vs: Full, metric: root_cause_correct}
+  - {condition: A1, vs: Full, metric: root_cause_correct}
+  - {condition: A2, vs: Full, metric: root_cause_correct}
+  - {condition: A5, vs: Full, metric: root_cause_correct}
+distractors_per_incident: 2
+spot_check_fraction: 0.1
+bootstrap: {iterations: 5000, seed: 0, alpha: 0.05}
+# LLM judge for the free-text rubric. NOTE: the judge MUST be a different model family from the
+# diagnosing model (Gemini here, so the judge is an OpenAI model); the config is rejected otherwise (D88).
+judge: {enabled: true, provider: openai_compatible, model: gpt-4o-2024-08-06}
+settings:
+  llm:
+    provider: gemini
+    model: gemini-1.5-pro-002           # EXAMPLE: replace with a current, exact, dated version
+    temperature: 0.0
+    max_output_tokens: 2048
+    input_cost_per_1k: 0.00125          # check the provider's current price list
+    output_cost_per_1k: 0.005
+  embeddings: {provider: sentence_transformers, model: all-MiniLM-L6-v2}

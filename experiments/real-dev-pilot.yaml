@@ -1,0 +1,33 @@
+# Small real-LLM pilot on the DEV split: checks keys, costs and output validity before the
+# final test run. Tune prompts/thresholds on dev only.
+#   export CLOUDDIAG_LLM__API_KEY=...   (never put keys in this file)
+#   cd backend && python -m app.experiments plan --config ../experiments/real-dev-pilot.yaml
+#   cd backend && python -m app.experiments run --config ../experiments/real-dev-pilot.yaml
+name: real-dev-pilot
+description: Real-LLM pilot on 10 dev incidents, core conditions only.
+label: llm / synthetic incidents
+split: dev
+limit: 10
+runs: 1
+seed: 0
+conditions: [B2, B3, B4, Full, A1]
+rq6: null
+self_consistency_samples: 3
+self_consistency_conditions: [Full, B4]
+primary_comparisons:
+  - {condition: B2, vs: Full, metric: root_cause_correct}
+  - {condition: B3, vs: Full, metric: root_cause_correct}
+  - {condition: B4, vs: Full, metric: root_cause_correct}
+  - {condition: A1, vs: Full, metric: root_cause_correct}
+bootstrap: {iterations: 2000, seed: 0, alpha: 0.05}
+# The judge MUST be a different model family from the diagnosing model (D88).
+judge: {enabled: false, provider: gemini, model: gemini-1.5-pro-002}
+settings:
+  llm:
+    provider: openai_compatible
+    model: gpt-4o-mini-2024-07-18      # EXAMPLE: replace with a current, exact, dated version
+    temperature: 0.0
+    max_output_tokens: 2048
+    input_cost_per_1k: 0.00015         # check the provider's current price list
+    output_cost_per_1k: 0.0006
+  embeddings: {provider: sentence_transformers, model: all-MiniLM-L6-v2}
