@@ -6,15 +6,15 @@
   openai                 OpenAI-compatible /embeddings endpoint (external).
   gemini                 Google Gemini batchEmbedContents (external).
 
-`build_embedder` wraps every external embedder in `RedactingEmbedder` when redaction is on, so
-no raw identifier is sent out (DECISIONS D59, D60).
+`build_embedder` goes through `app.ai.clients.create_embedder`, which wraps every external
+embedder in `RedactingEmbedder` (external classes cannot be constructed directly; DECISIONS
+D59, D60, D67).
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
-import logging
 import math
 import re
 import urllib.request
@@ -25,8 +25,6 @@ from typing import Any
 from app.ai.redaction import Redactor
 from app.config import EmbeddingSettings, RedactionSettings, Settings
 from app.interfaces.embedder import Embedder
-
-log = logging.getLogger(__name__)
 
 Post = Callable[[str, dict[str, str], dict[str, Any], float], dict[str, Any]]
 
@@ -191,6 +189,7 @@ class RedactingEmbedder(Embedder):
     same way) and refuses to send text that fails the strict check."""
 
     is_external = True
+    is_redaction_wrapper = True
 
     def __init__(self, inner: Embedder, settings: RedactionSettings):
         self.inner = inner
@@ -213,19 +212,16 @@ class RedactingEmbedder(Embedder):
 
 
 def build_embedder(settings: Settings, post: Post | None = None) -> Embedder:
+    """Embedder for `settings.embeddings.provider`, created through the wrapping factory."""
+    from app.ai.clients import create_embedder
+
     e = settings.embeddings
     if e.provider == "hashing":
-        emb: Embedder = HashingEmbedder(e.dimension)
-    elif e.provider == "sentence_transformers":
-        emb = SentenceTransformerEmbedder(e.model, e.batch_size)
-    elif e.provider == "openai":
-        emb = OpenAIEmbedder(e, post)
-    elif e.provider == "gemini":
-        emb = GeminiEmbedder(e, post)
-    else:
-        raise ValueError(f"unknown embeddings provider {e.provider!r}")
-    if emb.is_external:
-        if settings.redaction.enabled:
-            return RedactingEmbedder(emb, settings.redaction)
-        log.warning("redaction is disabled: %s receives raw text", e.provider)
-    return emb
+        return create_embedder(HashingEmbedder, settings, e.dimension)
+    if e.provider == "sentence_transformers":
+        return create_embedder(SentenceTransformerEmbedder, settings, e.model, e.batch_size)
+    if e.provider == "openai":
+        return create_embedder(OpenAIEmbedder, settings, e, post)
+    if e.provider == "gemini":
+        return create_embedder(GeminiEmbedder, settings, e, post)
+    raise ValueError(f"unknown embeddings provider {e.provider!r}")

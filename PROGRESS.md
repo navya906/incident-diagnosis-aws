@@ -153,7 +153,7 @@ Known limits:
 Branch: `phase5/redaction-rag` (from `main`). Results: `docs/experiments/phase5-retrieval-dev.md` (+ `.csv`, `.json`).
 
 Built:
-- `app/ai/redaction.py`: `Redactor` with consistent per-session pseudonyms (`ACCOUNT_1`, `IP_2`, `PRINCIPAL_1`, `HOST_1`, `SECRET_3` ...) for account ids, ARNs (partition/service/region kept), IPv4/IPv6, principals (IAM unique ids, access key ids, e-mails, identity keys in structured data), hostnames and secrets (key=value, bearer tokens, JWTs, PEM keys, URL passwords); optional resource-name redaction; `restore` maps answers back (never secrets); strict `check`/`ensure_safe`. `RedactingLLMClient` and `guard_llm_client` wrap every external LLM client (D59).
+- `app/ai/redaction.py`: `Redactor` with consistent per-session pseudonyms (`ACCOUNT_1`, `IP_2`, `PRINCIPAL_1`, `HOST_1`, `SECRET_3` ...) for account ids, ARNs (partition/service/region kept), IPv4/IPv6, principals (IAM unique ids, access key ids, e-mails, identity keys in structured data), hostnames and secrets (key=value, bearer tokens, JWTs, PEM keys, URL passwords); optional resource-name redaction; `restore` maps answers back (never secrets); strict `check`/`ensure_safe`. `RedactingLLMClient` wraps every external LLM client (D59).
 - Interfaces: `is_external` flag on `LLMClient` and `Embedder`; `VectorStore.search` takes `exclude_ids` for leave-one-out (D60, D61).
 - `app/rag/embedders.py`: `HashingEmbedder` (LOCAL-ONLY, deterministic, no download), `SentenceTransformerEmbedder` (config default, optional `embeddings` extra), `OpenAIEmbedder` (OpenAI-compatible) and `GeminiEmbedder` over stdlib HTTP; `build_embedder` wraps external ones in `RedactingEmbedder` (D60).
 - `app/rag/vector_store.py`: `LocalVectorStore` (FAISS `IndexFlatIP`, NumPy exact search when faiss is absent, save/load) and `PgVectorStore` (pgvector `<=>`; NumPy on SQLite); model name and dimension stored per index and enforced (D61). DB: `vector_indexes` / `vector_items` tables, `VectorType` (pgvector on PostgreSQL, JSON elsewhere), migration `0002`.
@@ -165,11 +165,20 @@ Built:
 - Config: `redaction` and `embeddings` extended, new `vector_store` and `rag` sections; `rag` extra (`faiss-cpu`) installed in CI.
 - Tests: the "no LLM module imported" checks of Phases 3 and 4 now run in a fresh interpreter (`tests/isolation.py`), so they no longer depend on test order (D65).
 
+Hardening before merging (D67-D71):
+- Construction guard: external `LLMClient`/`Embedder` classes cannot be instantiated outside `app/ai/clients.py` (`create_llm_client`, `create_embedder`), which always returns them wrapped in redaction (`GuardedMeta`, D67).
+- Real-AWS mode: `data_mode: aws` makes the redaction policy mandatory; external clients and the capture CLI fail closed if redaction is disabled, not strict, or a built-in category is off (D68).
+- Redaction: configurable `custom_patterns` (validated at config load, optional `value` group, `secret` flag), bare 40-character secret keys, URL passwords with an empty user, JDBC parameters kept after the password; fixed a bug where an e-mail match swallowed a `SECRET_n` token in connection strings (D69).
+- CI: backend job runs with and without `faiss-cpu`; a `pgvector` job runs PostgreSQL 16 with pgvector, migrates, and fails if the live test is skipped (D70).
+- New tests (`tests/test_redaction_hardening.py`): metric values, timestamps, event ids, resource ids and metric metadata of every dataset event unchanged by redaction; 20 non-identifier strings untouched; JWTs, bearer/basic tokens, six connection-string forms, four private-key block types and bare 40-character keys redacted and never restored; custom patterns; fail-closed checks for every weakened setting; construction guard over every `app` client class plus a source scan for the factory key.
+- The credential scan now skips `.pytest_cache`, and parametrized secret test cases have short ids, so secret-looking strings never land in pytest's node-id cache.
+
 Gate status:
 - [x] Retrieval tests: same-fault retrieval on dev queries, deterministic results, re-rank score composition, leave-one-out never returns the query, every vector store backend returns identical rankings and rejects model/dimension mismatches, one index never mixes embedding models.
 - [x] Leakage test: no test incident id, event id or description hash in any index (corpus or dev leave-one-out); a record built from a test incident is refused even under a different id; `records_from_dataset("test")` is refused.
 - [x] Redaction tests: every category, consistent pseudonyms, restore, switches, structured data, strict refusal. **Gate**: with redaction on, a recording external LLM and recording OpenAI/Gemini embedding transports receive no raw identifier (16 identifier kinds plus a real dataset incident), and every dataset incident (dev and test) serialised for a prompt passes the strict check.
-- [x] `pytest` 201 passed, 1 skipped (the live pgvector test, which needs `CLOUDDIAG_TEST_PG_URL`); `ruff check` and `ruff format --check` clean.
+- [x] `pytest` 261 passed, 1 skipped (the live pgvector test, which needs `CLOUDDIAG_TEST_PG_URL`; CI runs it in the `pgvector` job); `ruff check` and `ruff format --check` clean.
+- [x] Fresh venv with `pip install -e ".[dev,aws]"` only (no faiss-cpu, no sentence-transformers; Python 3.12, 2026-10-07): 261 passed, 1 skipped (the same live pgvector test); the vector store used the NumPy fallback.
 - [x] pgvector verified on PostgreSQL 16 in the compose `db` container (2026-10-07): `alembic upgrade head` -> `0002`, `embedding` column type `vector`, model/schema diff empty, the live test passes (`<=>` ordering and leave-one-out), downgrade to `0001` and upgrade again work.
 
 Results summary (dev split, 82 queries, hashing embedder, smoke-test / synthetic):
@@ -182,16 +191,19 @@ Results summary (dev split, 82 queries, hashing embedder, smoke-test / synthetic
 
 - Leakage: 0 test incident ids in either index, 0 fingerprint overlap (38 test incidents, 32,944 fingerprints), 0 queries returned themselves.
 - Ranked evidence in the query is what makes retrieval work (label@1 0.60 -> 0.96); re-ranking changes results by at most 0.02 on this data, so its default weights were kept, not tuned.
+- **The 0.96 is an upper bound** (D71): queries and past incidents share the simulator's fault templates, so this measures template matching. The hashing embedder is lexical (shared words and word pairs), not semantic.
 
 Known limits:
 - The near-ceiling label@1 is mostly template overlap: past incidents and queries share the simulator's wording. Real incident history will be much harder.
 - Results use the LOCAL-ONLY hashing embedder. SentenceTransformers is the configured default but was not installed here (it pulls PyTorch); re-run `python -m app.evaluation.retrieval_eval --embedder sentence_transformers` after `pip install -e ".[embeddings]"`.
 - Redaction is pattern-based: identifiers in formats it does not know (e.g. a bare user name in free text outside identity keys) pass through; strict mode verifies only what it can recognise. Resource names stay readable by default (D59).
-- Retrieval quality is measured by taxonomy-label agreement only; whether RAG improves diagnoses is measured in Phase 7 (Full vs A1).
+- Retrieval quality is measured by taxonomy-label agreement only; whether RAG improves diagnoses is measured in Phase 7 (Full vs A1), which must also run the knowledge-base conditions in D71: matching fault type removed, and distractor entries.
 - The evidence ranker still uses the lexical semantic scorer; swapping in an embedding scorer waits for a real embedding model and would need a D55 re-check on dev.
 
 ## Next: Phase 6 (diagnosis engine and severity)
-LLM clients (OpenAI-compatible, Gemini) obtained only through `guard_llm_client`; versioned prompt builder (using `render_historical_section`); context builder with token budget; output validator + one repair attempt (including `validate_historical_influence`); citation verifier; self-consistency sampling; deterministic stub LLM (LOCAL-ONLY); deterministic severity engine. Gate: end-to-end on dev with the stub; validator rejects malformed/uncited outputs; severity tests.
+LLM clients (OpenAI-compatible, Gemini) created only through `create_llm_client` (direct construction raises; the stub LLM must be added to the local allowlist in `tests/test_redaction_hardening.py` on purpose); versioned prompt builder (using `render_historical_section`); context builder with token budget; output validator + one repair attempt (including `validate_historical_influence`); citation verifier; self-consistency sampling; deterministic stub LLM (LOCAL-ONLY); deterministic severity engine. Gate: end-to-end on dev with the stub; validator rejects malformed/uncited outputs; severity tests.
+
+Carry-over for Phase 7 (D71): besides B1-B4, Full and A1-A5, evaluate RAG with (a) the query's fault type removed from the knowledge base and (b) distractor entries that share alarm metric, topology and wording but differ in root cause; report accuracy, `historical_influence` declarations and `validate_historical_influence` failures for Full vs A1 under each.
 
 ## Team hand-off
 Setup, commands and working rules are in `README.md` and `CONTRIBUTING.md`. CI runs ruff (lint + format check) and pytest on every PR. Branch naming: `phaseN/<topic>`.

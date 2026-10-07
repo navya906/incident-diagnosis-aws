@@ -20,6 +20,9 @@ Categories (each can be switched off in config):
 Guarantee (strict mode): `check` re-scans outgoing text for every raw value this redactor has
 replaced and for any detectable identifier still present; `RedactingLLMClient` and
 `RedactingEmbedder` refuse to send text that fails it (`RedactionError`). See DECISIONS D59.
+Extra patterns come from `redaction.custom_patterns`; bare 40-character secret keys are a
+category of their own (`bare_secret_keys`). External clients are only created through
+`app.ai.clients` (D67), which fails closed in real-AWS mode (D68).
 """
 
 from __future__ import annotations
@@ -30,7 +33,18 @@ from typing import Any
 from app.config import RedactionSettings
 from app.interfaces.llm_client import LLMClient, LLMRequest, LLMResponse
 
-TOKEN = re.compile(r"\b(?:ACCOUNT|ARN|RESOURCE|PRINCIPAL|ACCESS_KEY|EMAIL|HOST|IP|SECRET)_\d+\b")
+BUILTIN_CATEGORIES = (
+    "ACCOUNT",
+    "ARN",
+    "RESOURCE",
+    "PRINCIPAL",
+    "ACCESS_KEY",
+    "EMAIL",
+    "HOST",
+    "IP",
+    "SECRET",
+)
+TOKEN = re.compile(r"\b(?:" + "|".join(BUILTIN_CATEGORIES) + r")_\d+\b")
 
 _SECRET_KEYS = (
     r"aws_secret_access_key|secret_access_key|secretaccesskey|client_secret|api[_-]?key|"
@@ -39,13 +53,13 @@ _SECRET_KEYS = (
 )
 _SECRET_KV = re.compile(
     rf"(?i)(?P<key>\b(?:{_SECRET_KEYS})\b[\"']?)(?P<sep>\s*[:=]\s*[\"']?)"
-    r"(?P<value>[^\s\"',;}\]]{3,})"
+    r"(?P<value>[^\s\"',;}\]&]{3,})"
 )
 _BEARER = re.compile(r"(?i)\b(?P<key>bearer|basic)(?P<sep>\s+)(?P<value>[A-Za-z0-9._~+/=-]{8,})")
 _JWT = re.compile(r"\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\b")
 _PEM = re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----")
 _URL_PASSWORD = re.compile(
-    r"(?P<key>\b[a-z][a-z0-9+.-]*://[^:/\s@]+)(?P<sep>:)(?P<value>[^@\s/]+)(?=@)"
+    r"(?P<key>\b[a-z][a-z0-9+.-]*://[^:/\s@]*)(?P<sep>:)(?P<value>[^@\s/]+)(?=@)"
 )
 _ARN = re.compile(
     r"\barn:(?P<partition>aws[a-z-]*):(?P<service>[a-z0-9-]+):(?P<region>[a-z0-9-]*):"
@@ -65,6 +79,12 @@ _IPV6 = re.compile(
     r"|(?:[0-9A-Fa-f]{1,4}:){1,7}:"
     r"|::(?:[0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4}"
     r")(?![\w:])"
+)
+#: Bare AWS-secret-key-like strings: exactly 40 base64 characters with a lower-case letter,
+#: an upper-case letter and a digit (hex hashes and plain words do not qualify).
+_BARE_SECRET = re.compile(
+    r"(?<![A-Za-z0-9/+=])(?=[A-Za-z0-9/+]{0,39}[a-z])(?=[A-Za-z0-9/+]{0,39}[A-Z])"
+    r"(?=[A-Za-z0-9/+]{0,39}\d)[A-Za-z0-9/+]{40}(?![A-Za-z0-9/+=])"
 )
 #: 12 digits not inside a longer token or a decimal number (a sentence-final "." is fine).
 _ACCOUNT = re.compile(r"(?<![\w-])(?<!\d\.)\d{12}(?![\w-])(?!\.\d)")
@@ -90,6 +110,13 @@ class Redactor:
         self._forward: dict[tuple[str, str], str] = {}  # (category, raw) -> token
         self._reverse: dict[str, str] = {}  # token -> raw
         self._counts: dict[str, int] = {}
+        self._category: dict[str, str] = {}  # token -> category
+        self._custom = [
+            (c.name, re.compile(c.pattern), c.secret) for c in self.settings.custom_patterns
+        ]
+        names = BUILTIN_CATEGORIES + tuple(c.name for c in self.settings.custom_patterns)
+        self.token_re = re.compile(r"\b(?:" + "|".join(map(re.escape, names)) + r")_\d+\b")
+        self._secret_categories = {"SECRET"} | {n for n, _, secret in self._custom if secret}
 
     # ------------------------------------------------------------------ mapping
     def _token(self, category: str, raw: str) -> str:
@@ -99,6 +126,7 @@ class Redactor:
             token = f"{category}_{self._counts[category]}"
             self._forward[key] = token
             self._reverse[token] = raw
+            self._category[token] = category
         return self._forward[key]
 
     @property
@@ -134,11 +162,15 @@ class Redactor:
         if not self.settings.enabled or not text:
             return text
         st = self.settings
+        for name, pattern, _ in self._custom:
+            text = pattern.sub(lambda m, name=name: self._custom_sub(name, m), text)
         if st.secrets:
             text = _PEM.sub(lambda m: self._token("SECRET", m.group(0)), text)
             text = _JWT.sub(lambda m: self._token("SECRET", m.group(0)), text)
             for pattern in (_URL_PASSWORD, _BEARER, _SECRET_KV):
                 text = pattern.sub(self._kv, text)
+            if st.bare_secret_keys:
+                text = _BARE_SECRET.sub(lambda m: self._token("SECRET", m.group(0)), text)
         if st.arns:
             text = _ARN.sub(self._arn, text)
         if st.principals:
@@ -149,7 +181,7 @@ class Redactor:
                 ),
                 text,
             )
-            text = _EMAIL.sub(lambda m: self._token("EMAIL", m.group(0)), text)
+            text = _EMAIL.sub(self._email, text)
         if st.hostnames:
             text = _HOST.sub(lambda m: self._token("HOST", m.group(0)), text)
         if st.ips:
@@ -161,16 +193,35 @@ class Redactor:
             text = _RESOURCE_ID.sub(
                 lambda m: (
                     f"{m.group('prefix')}/{self._token('RESOURCE', m.group('name'))}"
-                    if not TOKEN.fullmatch(m.group("name"))
+                    if not self.token_re.fullmatch(m.group("name"))
                     else m.group(0)
                 ),
                 text,
             )
         return text
 
+    def _custom_sub(self, name: str, m: re.Match) -> str:
+        if "value" in m.re.groupindex and m.group("value") is not None:
+            value = m.group("value")
+            if self.token_re.fullmatch(value):
+                return m.group(0)
+            start, end = m.span("value")
+            base = m.start()
+            whole = m.group(0)
+            return whole[: start - base] + self._token(name, value) + whole[end - base :]
+        if self.token_re.fullmatch(m.group(0)):
+            return m.group(0)
+        return self._token(name, m.group(0))
+
+    def _email(self, m: re.Match) -> str:
+        # "user:SECRET_1@host" (a URL whose password was already replaced) is not an address.
+        if self.token_re.search(m.group(0).split("@", 1)[0]):
+            return m.group(0)
+        return self._token("EMAIL", m.group(0))
+
     def _kv(self, m: re.Match) -> str:
         value = m.group("value")
-        if TOKEN.fullmatch(value):
+        if self.token_re.fullmatch(value):
             return m.group(0)
         return f"{m.group('key')}{m.group('sep')}{self._token('SECRET', value)}"
 
@@ -191,7 +242,7 @@ class Redactor:
         if isinstance(obj, list | tuple):
             return [self.redact_obj(v, key) for v in obj]
         if isinstance(obj, str):
-            if key in PRINCIPAL_KEYS and self.settings.principals and not TOKEN.search(obj):
+            if key in PRINCIPAL_KEYS and self.settings.principals and not self.token_re.search(obj):
                 redacted = self.redact(obj)
                 return redacted if redacted != obj else self._token("PRINCIPAL", obj)
             if key in _IP_KEYS and self.settings.ips:
@@ -206,9 +257,8 @@ class Redactor:
         if not self._reverse:
             return text
         for token in sorted(self._reverse, key=len, reverse=True):
-            raw = self._reverse[token]
-            if not token.startswith("SECRET_"):
-                text = text.replace(token, raw)
+            if self._category.get(token) not in self._secret_categories:
+                text = text.replace(token, self._reverse[token])
         return text
 
     def restore_obj(self, obj: Any) -> Any:
@@ -245,6 +295,7 @@ class RedactingLLMClient(LLMClient):
     """Wraps an external client: redacts the request, restores identifiers in the response."""
 
     is_external = True
+    is_redaction_wrapper = True
 
     def __init__(self, inner: LLMClient, settings: RedactionSettings | None = None):
         self.inner = inner
@@ -268,14 +319,6 @@ class RedactingLLMClient(LLMClient):
         return response.model_copy(update={"text": r.restore(response.text)})
 
 
-def guard_llm_client(client: LLMClient, settings: RedactionSettings) -> LLMClient:
-    """The only way the system should obtain an LLM client: external clients are wrapped
-    whenever redaction is enabled; local ones (the stub) are returned unchanged."""
-    if settings.enabled and getattr(client, "is_external", True):
-        return RedactingLLMClient(client, settings)
-    return client
-
-
 def redact_texts(texts: list[str], settings: RedactionSettings) -> tuple[list[str], Redactor]:
     r = Redactor(settings)
     out = [r.redact(t) for t in texts]
@@ -290,6 +333,5 @@ __all__ = [
     "RedactingLLMClient",
     "RedactionError",
     "Redactor",
-    "guard_llm_client",
     "redact_texts",
 ]

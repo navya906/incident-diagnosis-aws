@@ -7,7 +7,13 @@ on:
 
 jobs:
   backend:
+    name: backend (${{ matrix.extras }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # With faiss-cpu (rag extra) and without it: the vector store must fall back to NumPy.
+        extras: ["dev,aws,rag", "dev,aws"]
     defaults:
       run:
         working-directory: backend
@@ -19,7 +25,48 @@ jobs:
           cache: pip
           cache-dependency-path: backend/pyproject.toml
       - run: python -m pip install --upgrade pip
-      - run: pip install -e ".[dev,aws,rag]"
+      - run: pip install -e ".[${{ matrix.extras }}]"
+      - name: faiss presence matches the matrix entry
+        run: |
+          python -c "import importlib.util as u, sys; has = u.find_spec('faiss') is not None; want = 'rag' in '${{ matrix.extras }}'; print('faiss installed:', has); sys.exit(0 if has == want else 1)"
       - run: ruff check .
       - run: ruff format --check .
       - run: pytest -q
+
+  pgvector:
+    name: pgvector (PostgreSQL 16)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: clouddiag
+          POSTGRES_PASSWORD: clouddiag
+          POSTGRES_DB: clouddiag
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U clouddiag"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      CLOUDDIAG_DATABASE_URL: postgresql+psycopg://clouddiag:clouddiag@localhost:5432/clouddiag
+      CLOUDDIAG_TEST_PG_URL: postgresql+psycopg://clouddiag:clouddiag@localhost:5432/clouddiag
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - run: python -m pip install --upgrade pip
+      - run: pip install -e ".[dev,rag]"
+      - run: alembic upgrade head
+      - name: live pgvector store test (must run, not skip)
+        run: pytest -q -rs tests/test_redaction_rag.py::test_pgvector_store_on_postgres -p no:cacheprovider | tee pg.log && ! grep -q SKIPPED pg.log
+      - run: alembic downgrade base
+      - run: alembic upgrade head

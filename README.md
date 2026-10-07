@@ -61,7 +61,7 @@ Run from `backend/` with the venv active.
 | Auto-fix lint/imports | `ruff check . --fix` |
 | Format code | `ruff format .` (CI runs `ruff format --check .`) |
 | Generate synthetic dataset | `python -m app.offline.generate` (writes `data/generated/synthetic-v1`, git-ignored) |
-| Capture a real incident (read-only AWS) | `python -m app.collectors.capture --seed-arn <arn> --start ... --end ... --title ... --description ... --out ../data/captured` (see `docs/aws-setup.md`) |
+| Capture a real incident (read-only AWS; needs `CLOUDDIAG_DATA_MODE=aws`) | `python -m app.collectors.capture --seed-arn <arn> --start ... --end ... --title ... --description ... --out ../data/captured` (see `docs/aws-setup.md`) |
 | Compare anomaly detectors (dev split) | `python -m app.evaluation.anomaly_eval [--sweep]` (writes `docs/experiments/`) |
 | Evaluate evidence ranking and candidate causes (dev split) | `python -m app.evaluation.evidence_eval [--tune]` (writes `docs/experiments/`) |
 | Build the historical-incident corpus | `python -m app.rag.corpus` (writes `data/generated/historical-v1`, git-ignored) |

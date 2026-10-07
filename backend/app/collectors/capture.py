@@ -16,6 +16,7 @@ import hashlib
 from datetime import datetime
 from pathlib import Path
 
+from app.ai.clients import redaction_policy_violations
 from app.collectors.aws_collector import AwsCollector
 from app.collectors.resources import canonical_id_from_arn
 from app.config import get_settings
@@ -38,7 +39,14 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--out", type=Path, required=True)
     args = p.parse_args(argv)
 
-    settings = get_settings().aws
+    full = get_settings()
+    # Real telemetry only enters the system in real-AWS mode, where redaction is mandatory and
+    # external LLM/embedding clients fail closed (DECISIONS D68).
+    if full.data_mode != "aws":
+        p.error("capturing real AWS data requires data_mode=aws (CLOUDDIAG_DATA_MODE=aws)")
+    if problems := redaction_policy_violations(full):
+        p.error("redaction policy not met for real AWS data: " + "; ".join(problems))
+    settings = full.aws
     collector, inventory = AwsCollector.from_settings(settings, args.seed_arn)
     resource_ids = [r.resource_id for r in inventory.resources]
     incident_id = (

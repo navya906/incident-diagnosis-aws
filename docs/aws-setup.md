@@ -40,7 +40,14 @@ Never put keys in `config/default.yaml`, `.env.example`, or code. `.env` is git-
 
 ## 4. Capture a real incident
 
+Real telemetry may only enter the system in real-AWS mode. Set `CLOUDDIAG_DATA_MODE=aws`; the
+capture CLI refuses to run otherwise, and in this mode any external LLM or embedding client is
+refused unless redaction is enabled, strict, and every built-in category (account ids, ARNs, IPs,
+principals, secrets, hostnames) is on (fail closed, DECISIONS D68). Add organisation-specific
+identifiers as `redaction.custom_patterns` in your config.
+
 ```bash
+export CLOUDDIAG_DATA_MODE=aws
 python -m app.collectors.capture \
   --seed-arn arn:aws:elasticloadbalancing:us-east-1:<acct>:loadbalancer/app/<name>/<id> \
   --start 2026-10-06T10:00:00Z --end 2026-10-06T11:30:00Z \

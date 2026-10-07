@@ -1,6 +1,9 @@
 # Default configuration. Override any key via env var CLOUDDIAG_<SECTION>__<KEY>,
 # e.g. CLOUDDIAG_DATABASE_URL, CLOUDDIAG_EVIDENCE__TOP_K=20.
 environment: development
+# offline = replay/synthetic data; aws = real AWS telemetry. In aws mode the redaction policy is
+# mandatory: external LLM/embedding clients and the capture CLI fail closed if it is weakened.
+data_mode: offline              # override with CLOUDDIAG_DATA_MODE=aws for real incidents
 log_level: INFO
 log_json: false
 database_url: postgresql+psycopg://clouddiag:clouddiag@localhost:5432/clouddiag
@@ -55,6 +58,9 @@ redaction:
   hostnames: true        # *.amazonaws.com / *.compute.internal
   resource_names: false  # canonical ids (rds/db-1c1d) stay readable so citations can be checked
   strict: true           # refuse to send text that still contains a replaced raw value
+  bare_secret_keys: true # bare 40-char AWS-secret-key-like strings
+  custom_patterns: []    # e.g. - {name: TICKET, pattern: 'TCK-\d{4,}'}
+                         #      - {name: LICENSE, pattern: 'license_key=(?P<value>\S+)', secret: true}
 
 llm:
   provider: stub            # stub (LOCAL-ONLY) | openai_compatible | gemini

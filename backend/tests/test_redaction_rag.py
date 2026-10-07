@@ -8,11 +8,11 @@ import re
 import pytest
 from sqlalchemy import create_engine
 
+from app.ai.clients import create_llm_client
 from app.ai.redaction import (
     RedactingLLMClient,
     RedactionError,
     Redactor,
-    guard_llm_client,
 )
 from app.config import EmbeddingSettings, RagSettings, RedactionSettings, Settings
 from app.contracts import Diagnosis
@@ -209,9 +209,9 @@ def dataset(tmp_path_factory):
 def test_gate_no_raw_identifiers_leave_the_process_via_llm(dataset):
     """Gate: with redaction on, an external LLM receives no raw identifier."""
     loader = DatasetLoader(dataset)
-    inner = RecordingLLM()
-    client = guard_llm_client(inner, RedactionSettings())
+    client = create_llm_client(RecordingLLM, Settings())
     assert isinstance(client, RedactingLLMClient)
+    inner = client.inner
     iid = loader.incident_ids("dev")[0]
     scenario = loader.load(iid).model_dump(mode="json")
     context = json.dumps(scenario["events"][-60:]) + "\n" + SAMPLE
@@ -236,15 +236,16 @@ def test_gate_whole_dataset_redacts_cleanly(dataset):
         assert ACCOUNT not in out and "user/deployer" not in out
 
 
-def test_guard_wraps_only_external_clients():
-    assert not isinstance(guard_llm_client(LocalLLM(), RedactionSettings()), RedactingLLMClient)
-    off = guard_llm_client(RecordingLLM(), RedactionSettings(enabled=False))
+def test_factory_wraps_only_external_clients():
+    assert isinstance(create_llm_client(LocalLLM, Settings()), LocalLLM)
+    # Offline mode may switch redaction off for synthetic data: the client is then unwrapped.
+    off = create_llm_client(RecordingLLM, Settings(redaction=RedactionSettings(enabled=False)))
     assert isinstance(off, RecordingLLM)
 
 
 def test_shared_redactor_keeps_pseudonyms_across_calls():
-    inner = RecordingLLM()
-    client = RedactingLLMClient(inner)
+    client = create_llm_client(RecordingLLM, Settings())
+    inner = client.inner
     r = Redactor()
     client.complete(LLMRequest(prompt=f"first {IP4}"), redactor=r)
     client.complete(LLMRequest(prompt=f"repair: {OTHER_ACCOUNT} and {IP4}"), redactor=r)
