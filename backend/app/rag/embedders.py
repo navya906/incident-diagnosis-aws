@@ -14,33 +14,17 @@ D59, D60, D67).
 from __future__ import annotations
 
 import hashlib
-import json
 import math
 import re
-import urllib.request
 from collections import Counter
-from collections.abc import Callable
-from typing import Any
 
+from app.ai.http import Post, http_post
 from app.ai.redaction import Redactor
 from app.config import EmbeddingSettings, RedactionSettings, Settings
 from app.interfaces.embedder import Embedder
 
-Post = Callable[[str, dict[str, str], dict[str, Any], float], dict[str, Any]]
-
 _CAMEL = re.compile(r"(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")
 _WORD = re.compile(r"[A-Za-z0-9]+")
-
-
-def _http_post(url: str, headers: dict[str, str], body: dict[str, Any], timeout: float) -> dict:
-    req = urllib.request.Request(
-        url,
-        data=json.dumps(body).encode(),
-        headers={"Content-Type": "application/json", **headers},
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 (configured URL)
-        return json.loads(resp.read().decode())
 
 
 def tokenize(text: str) -> list[str]:
@@ -126,7 +110,7 @@ class _RemoteEmbedder(Embedder):
         if settings.api_key is None:
             raise ValueError(f"{type(self).__name__} needs CLOUDDIAG_EMBEDDINGS__API_KEY")
         self.settings = settings
-        self._post = post or _http_post
+        self._post = post or http_post
         self._dim: int | None = None
 
     @property

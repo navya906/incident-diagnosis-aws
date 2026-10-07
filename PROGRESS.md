@@ -200,8 +200,50 @@ Known limits:
 - Retrieval quality is measured by taxonomy-label agreement only; whether RAG improves diagnoses is measured in Phase 7 (Full vs A1), which must also run the knowledge-base conditions in D71: matching fault type removed, and distractor entries.
 - The evidence ranker still uses the lexical semantic scorer; swapping in an embedding scorer waits for a real embedding model and would need a D55 re-check on dev.
 
-## Next: Phase 6 (diagnosis engine and severity)
-LLM clients (OpenAI-compatible, Gemini) created only through `create_llm_client` (direct construction raises; the stub LLM must be added to the local allowlist in `tests/test_redaction_hardening.py` on purpose); versioned prompt builder (using `render_historical_section`); context builder with token budget; output validator + one repair attempt (including `validate_historical_influence`); citation verifier; self-consistency sampling; deterministic stub LLM (LOCAL-ONLY); deterministic severity engine. Gate: end-to-end on dev with the stub; validator rejects malformed/uncited outputs; severity tests.
+## Phase 6: Diagnosis engine and severity — implemented, gate PASSED
+
+Branch: `phase6/diagnosis-engine` (from `main` after the Phase 5 merge; CI on that merge passed all three jobs including the pgvector job). Results: `docs/experiments/phase6-e2e-dev.md` (+ `.json`).
+
+Built:
+- `app/ai/llm_clients.py`: `OpenAICompatibleClient` (POST `/chat/completions`, JSON mode, seed) and `GeminiClient` (`generateContent`, `responseMimeType: application/json`), both over stdlib HTTP with retries on 408/409/429/5xx and network errors (`app/ai/http.py`), token usage and a cost estimate from configured prices. Both are external: only `build_llm_client` / `create_llm_client` can create them, always wrapped in redaction (D67), failing closed in aws mode (D68). `StubLLM` is the deterministic LOCAL-ONLY test double (D75); it is on the in-process allowlist.
+- `app/diagnosis/context.py`: context builder with the ordered sections INCIDENT, TIMELINE (candidate causes and chains), ANOMALIES, LOGS, CLOUDTRAIL, GRAPH, HISTORICAL; every observed fact is one line tagged with its stable evidence id; token budget with per-section shares, carry-over and dropped-item counts (D72).
+- `app/diagnosis/prompts.py`: versioned prompt `diag-v1` (system rules, output spec, repair template) with a template hash recorded per diagnosis (D73).
+- `app/diagnosis/validator.py`: JSON parsing (fences tolerated), schema validation, citation verifier (ids must exist in the context; numbers quoted in FACT explanations must match the cited line), root-cause resource check, historical-influence rules; `requires_human_review` applied as policy (D74).
+- `app/diagnosis/engine.py`: `DiagnosisEngine` (investigation -> retrieval -> context -> prompt -> one repair -> reject with recorded failure), self-consistency sampling with agreement-with-primary as the self-consistency confidence, one redactor per incident across all calls, ablation switches (`use_rag`, `use_graph`, `use_anomalies`, `use_chains`), latency/tokens/cost per diagnosis (D77).
+- `app/severity/engine.py`: deterministic severity from affected resources/services, peak error rate, duration, availability (capacity loss), latency, and static business criticality from config; the LLM's `severity_suggestion` is stored as advisory only (D76).
+- `app/evaluation/diagnosis_e2e.py`: end-to-end smoke run over every dev incident for Full and A1-A4 with the stub.
+- Config: `llm` (temperature, max tokens, seed, timeout, retries, prices), `diagnosis` (self-consistency, context budget, section shares, quote tolerance), new `severity` section.
+
+Gate status:
+- [x] End-to-end pipeline on dev incidents with the stub LLM: all 86 dev incidents produce a valid diagnosis under Full, A1, A2, A3 and A4 (0 rejected, unsupported-citation rate 0), with severity, self-consistency (Full) and context statistics; labelled **smoke-test / synthetic**.
+- [x] Validator rejects malformed and uncited outputs: non-JSON, arrays, truncated JSON, empty and `null`; schema violations (unknown label, missing field, confidences > 1); no supporting evidence; unknown or historical evidence ids; misquoted values in FACT explanations; unknown root-cause resource; claimed historical use without historical context. One repair attempt, then rejection with the failure recorded.
+- [x] Severity tests: points per factor, each factor raises the score, major-outage floor, criticality from config (and invalid regexes rejected at load), monotonicity, determinism, missing data reported as unknown, every dev incident assessed.
+- [x] `pytest` 296 passed, 1 skipped; `ruff check` and `ruff format --check` clean.
+
+Results (dev split, stub LLM, smoke-test / synthetic; pipeline checks, not diagnostic quality):
+
+| condition | valid | repaired | rejected | unsupported citations | mean context tokens |
+|---|---|---|---|---|---|
+| Full | 86/86 | 0 | 0 | 0.0 | 2406 |
+| A1 no RAG | 86/86 | 0 | 0 | 0.0 | 1451 |
+| A2 no graph | 86/86 | 0 | 0 | 0.0 | 1925 |
+| A3 no anomaly detection | 86/86 | 0 | 0 | 0.0 | 2076 |
+| A4 no chains | 86/86 | 0 | 0 | 0.0 | 1645 |
+
+- Severity (engine, Full): CRITICAL 24, HIGH 47, MEDIUM 13, LOW 2; the stub's advisory suggestion matches the engine in 43 of 86.
+- The repair path is exercised by tests with scripted stub outputs; the stub itself never needs repair on dev.
+- The stub's taxonomy agreement (0.965 Full) is **not a result**: its keyword rules were written against the simulator's own wording (D75).
+
+Known limits:
+- No real LLM has been run (no keys in the build environment). `docs/experiments/RUNBOOK.md` with real-LLM commands is a Phase 7 deliverable.
+- Token counts in the context budget are estimates (chars / 4); on dev the context uses about 1,500-2,400 of 6,000 tokens, so the budget never binds on synthetic data (tests cover tight budgets).
+- Quoted-value checking covers numbers in FACT explanations only (INFERENCE may compute values); times, dates, ids and integers below 10 are not checked.
+- Severity thresholds are first-principles defaults, not calibrated on real incidents; the latency factor is an addition to the brief's list (D76).
+- Self-consistency counts invalid samples as disagreeing; with the stub, temperature only perturbs keyword scores, so agreement (0.98) says nothing about a real model.
+- Diagnoses are not yet persisted to the `diagnoses` table (API/DB wiring is Phase 8).
+
+## Next: Phase 7 (evaluation, baselines, ablations)
+B1-B4, Full, A1-A5 and RQ6 sweeps; all metrics (taxonomy accuracy, top-K, evidence P/R, calibration incl. self-consistency, hallucination rate via the citation verifier, recommendation rubric, latency, tokens/cost); YAML experiment configs and experiment ids; bootstrap CIs and paired tests; CLI with `--split dev|test`; `docs/experiments/RUNBOOK.md` for real-LLM runs. Must include the knowledge-base conditions of D71 (fault type removed, distractors).
 
 Carry-over for Phase 7 (D71): besides B1-B4, Full and A1-A5, evaluate RAG with (a) the query's fault type removed from the knowledge base and (b) distractor entries that share alarm metric, topology and wording but differ in root cause; report accuracy, `historical_influence` declarations and `validate_historical_influence` failures for Full vs A1 under each.
 

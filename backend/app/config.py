@@ -87,9 +87,30 @@ class CorrelationSettings(BaseModel):
     )
 
 
+class SectionShares(BaseModel):
+    """Share of the context token budget per section (normalised; unused budget flows on)."""
+
+    incident: float = Field(default=0.10, ge=0)
+    timeline: float = Field(default=0.15, ge=0)
+    anomalies: float = Field(default=0.20, ge=0)
+    logs: float = Field(default=0.20, ge=0)
+    cloudtrail: float = Field(default=0.15, ge=0)
+    graph: float = Field(default=0.08, ge=0)
+    historical: float = Field(default=0.12, ge=0)
+
+
 class DiagnosisSettings(BaseModel):
     review_confidence_threshold: float = Field(default=0.6, ge=0, le=1)
-    self_consistency_samples: int = Field(default=5, ge=1)
+    #: Extra samples for self-consistency (0 disables sampling; the primary answer is separate).
+    self_consistency_samples: int = Field(default=5, ge=0)
+    self_consistency_temperature: float = Field(default=0.7, ge=0, le=2)
+    #: Approximate tokens (chars / 4) for the context sections; the API reports real counts.
+    context_token_budget: int = Field(default=6000, ge=500)
+    section_shares: SectionShares = Field(default_factory=SectionShares)
+    max_signals_per_section: int = Field(default=25, ge=1)
+    #: Relative tolerance when a number quoted in an explanation is matched to its evidence.
+    quote_tolerance: float = Field(default=0.01, ge=0)
+    use_historical: bool = True
 
 
 class CustomRedactionPattern(BaseModel):
@@ -135,10 +156,52 @@ class RedactionSettings(BaseModel):
 
 
 class LLMSettings(BaseModel):
-    provider: str = "stub"
+    provider: str = "stub"  # stub (LOCAL-ONLY) | openai_compatible | gemini
     model: str = "stub-deterministic"
     base_url: str | None = None
-    api_key: SecretStr | None = None
+    api_key: SecretStr | None = None  # env only: CLOUDDIAG_LLM__API_KEY
+    temperature: float = Field(default=0.0, ge=0, le=2)  # primary answer
+    max_output_tokens: int = Field(default=2048, ge=64)
+    seed: int = 0
+    timeout_seconds: float = Field(default=120.0, gt=0)
+    max_retries: int = Field(default=3, ge=0)
+    #: Prices for the cost estimate (USD per 1,000 tokens); set them for the model you use.
+    input_cost_per_1k: float = Field(default=0.0, ge=0)
+    output_cost_per_1k: float = Field(default=0.0, ge=0)
+
+
+class CriticalityRule(BaseModel):
+    """Static business criticality: the first rule whose regex matches a resource id or its
+    service wins; the incident takes the highest level among its affected resources."""
+
+    match: str
+    level: Literal["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+
+    @field_validator("match")
+    @classmethod
+    def _compiles(cls, v: str) -> str:
+        try:
+            re.compile(v)
+        except re.error as e:
+            raise ValueError(f"invalid regex {v!r}: {e}") from e
+        return v
+
+
+class SeveritySettings(BaseModel):
+    """Deterministic severity engine (the LLM's severity is advisory only)."""
+
+    default_criticality: Literal["LOW", "MEDIUM", "HIGH", "CRITICAL"] = "MEDIUM"
+    criticality_rules: list[CriticalityRule] = Field(default_factory=list)
+    #: Upper bounds for 0, 1, 2 points (>= last bound scores 3).
+    resources_bounds: list[float] = Field(default_factory=lambda: [1, 2, 4])
+    error_rate_bounds: list[float] = Field(default_factory=lambda: [0.01, 0.05, 0.25])
+    duration_minutes_bounds: list[float] = Field(default_factory=lambda: [5, 15, 60])
+    availability_loss_bounds: list[float] = Field(default_factory=lambda: [0.001, 0.01, 0.05])
+    latency_ratio_bounds: list[float] = Field(default_factory=lambda: [2.0, 5.0])  # 0, 1, else 2
+    #: Total points -> level: <= LOW, <= MEDIUM, <= HIGH, else CRITICAL.
+    level_bounds: list[int] = Field(default_factory=lambda: [2, 5, 8])
+    #: Error rate or availability loss at or above this forces at least HIGH.
+    major_outage_fraction: float = Field(default=0.5, gt=0, le=1)
 
 
 class EmbeddingSettings(BaseModel):
@@ -266,6 +329,7 @@ class Settings(BaseSettings):
     evidence: EvidenceSettings = Field(default_factory=EvidenceSettings)
     correlation: CorrelationSettings = Field(default_factory=CorrelationSettings)
     diagnosis: DiagnosisSettings = Field(default_factory=DiagnosisSettings)
+    severity: SeveritySettings = Field(default_factory=SeveritySettings)
     redaction: RedactionSettings = Field(default_factory=RedactionSettings)
     llm: LLMSettings = Field(default_factory=LLMSettings)
     embeddings: EmbeddingSettings = Field(default_factory=EmbeddingSettings)

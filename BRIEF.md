@@ -163,7 +163,8 @@ RQ6 experiments: sweep K ∈ {5, 10, 20, 40}, time window ∈ {5, 15, 30, 60 min
 | 3 Anomaly detection | Implemented, gate passed (5 detectors, dev comparison table labelled synthetic, unit tests per method). |
 | 4 Correlation, graph, evidence ranking | Implemented, gate passed (dev evidence P/R@K table labelled synthetic and in-sample; chain tests incl. red herrings). |
 | 5 Redaction, embeddings, historical RAG | Implemented, gate passed (retrieval, leakage and redaction tests; pgvector verified on PostgreSQL 16). |
-| 6 to 10 | Not started. |
+| 6 Diagnosis engine and severity | Implemented, gate passed (end-to-end on all dev incidents with the stub LLM; validator and severity tests). |
+| 7 to 10 | Not started. |
 
 Amendments (details in DECISIONS.md):
 - Python target is `>=3.11` (dev machine runs 3.12; Docker image uses 3.11).
@@ -176,3 +177,4 @@ Amendments (details in DECISIONS.md):
 - Phase 3: no contract change; detectors use trailing minute-based windows (D41); textbook thresholds kept as defaults and the dev sweep recorded (D46).
 - Phase 4: contracts added for correlation outputs, `EvidenceRanking` and stable evidence ids (D56); failure impact uses a derived impact graph (D49); chains and candidate causes do not feed the evidence score (D52); evidence weights and detector threshold chosen on dev (D55).
 - Phase 5: `is_external` flag on `LLMClient`/`Embedder` and `exclude_ids` on `VectorStore.search` (D60, D61); historical-record contracts, vector tables and migration 0002 added (D61, D62); the configured default embedder (SentenceTransformers) is an optional extra and the reported results use the LOCAL-ONLY hashing embedder (D60). External LLM/embedding clients can only be created through the wrapping factory (D67); new setting `data_mode` (offline or aws) makes redaction mandatory and fail-closed for real AWS data (D68); the 96% retrieval figure is an upper bound and Phase 7 adds knowledge-base conditions with the matching fault type removed and with distractors (D71).
+- Phase 6: no change to the Diagnosis schema; context/citation/severity models are new (D72-D77); `requires_human_review` is applied as a deterministic policy after validation rather than as a rejection reason (D74); the severity engine adds a latency factor to the brief's list (D76).
