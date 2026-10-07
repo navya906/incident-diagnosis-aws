@@ -390,8 +390,15 @@ Known limits (full list: `docs/known-limitations.md`):
 - On a persistent stack the walk-through can run three times (three suitable incidents); reset the volume to run it again.
 - One API process, one role, no TLS inside the stack.
 
-## Next
-All phases (0-10) are complete. Next steps, in order (`docs/future-work.md`): real-LLM runs on the test split (RUNBOOK), captured real incidents from the test stack, then the stretch features in BRIEF order.
+## Next: remaining work
+All phases (0-10) are complete and merged (PR #12). Remaining work, in order (details in `docs/future-work.md` and `docs/known-limitations.md`):
+
+1. **Bug: browser sign-in pop-up on a wrong API key.** On a refused key, `app/main.py` (the `actor is None` branch of the auth middleware) answers 401 with `WWW-Authenticate: Basic realm="api"`, so Chrome shows its own Username/Password dialog over the UI. The header is needed for SNS HTTPS subscriptions (they send credentials only after a Basic challenge), but not for the UI, which always sends `X-API-Key`. Fix: send the challenge only when the request has no `X-API-Key` header; add a test in `tests/test_api.py` (refused `X-API-Key` -> no `WWW-Authenticate`; no credentials -> challenge kept) and a Playwright assertion that a wrong key shows the in-page error without a dialog. Workaround until then: Cancel, "Forget API key", enter the right key.
+2. **Real-LLM experiments** on the test split with at least two model families, N >= 3 runs per condition, LLM judge from a different family and the human spot check (`docs/experiments/RUNBOOK.md`; dev pilot first). This is the only way to answer RQ1-RQ5; every current number is smoke-test / synthetic.
+3. **Real incidents:** deploy the test stack (`infra/test-stack/`), inject faults, capture with `app.collectors.capture`, write ground truth by hand, and re-check the dev-tuned settings (D55) on them. The collectors, the stack and the fault-injection tool have never run against a real AWS account.
+4. **Component upgrades** (`docs/future-work.md` section 3-4): semantic evidence scoring and a semantic embedder for retrieval (re-tuned on dev), semantic citation checking, a prompt-injection test set.
+5. **Operations:** shared job queue and rate limiter for several API replicas; collect telemetry from the API after the CloudTrail lag instead of the capture CLI; service metrics; chart downsampling; an accessibility audit.
+6. **Stretch features** in BRIEF order: conversational assistant (cited answers from stored context only), graph database backend, remediation with explicit human approval, multi-user accounts and roles.
 
 Phase 7 carry-over (D71), done: the knowledge-base conditions are in the matrix; besides B1-B4, Full and A1-A5, evaluate RAG with (a) the query's fault type removed from the knowledge base and (b) distractor entries that share alarm metric, topology and wording but differ in root cause; report accuracy, `historical_influence` declarations and `validate_historical_influence` failures for Full vs A1 under each.
 
