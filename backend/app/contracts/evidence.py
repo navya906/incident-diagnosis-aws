@@ -1,5 +1,8 @@
 """Evidence items and scoring configuration contracts."""
 
+import hashlib
+from datetime import datetime
+
 from pydantic import BaseModel, Field
 
 
@@ -39,3 +42,19 @@ class EvidenceItem(BaseModel):
     rank: int = Field(ge=1)
     score: float
     components: ScoreComponents
+
+
+def make_evidence_id(incident_id: str, event_id: str) -> str:
+    """Stable evidence id: depends only on the incident and the event, never on rank, K or
+    weights, so citations stay valid across re-rankings and ablations."""
+    return "evd_" + hashlib.sha256(f"{incident_id}|{event_id}".encode()).hexdigest()[:16]
+
+
+class EvidenceRanking(BaseModel):
+    incident_id: str
+    window_minutes: int
+    onset_estimate: datetime
+    top_k: int
+    weights: ScoreWeights
+    candidates: int  # events in the window that were scored
+    items: list[EvidenceItem]

@@ -108,8 +108,48 @@ Known limits:
 - Detectors are univariate; there is no cross-metric or cross-resource fusion yet (that is correlation, Phase 4).
 - Anomalies are not yet persisted to the `anomalies` table (API/DB wiring is Phase 8).
 
-## Next: Phase 4 (correlation, dependency graph, evidence ranking)
-Investigation windows, temporal ranking, event chains, candidate causes, NetworkX `GraphStore`, evidence score per Section 2 with configurable weights and K. Gate: evidence precision/recall@K on dev and chain tests including red herrings. Choose the anomaly method/threshold for the anomaly component on dev only (see D46).
+## Phase 4: Correlation, dependency graph, evidence ranking — implemented, gate PASSED
+
+Branch: `phase4/correlation-evidence`, branched from `phase3/anomaly-detection` (Phase 3 is pushed but not yet merged to `main`; merge Phase 3 first, D48). Results: `docs/experiments/phase4-evidence-ranking-dev.md` (+ `.csv`, `.json`).
+
+Built:
+- `app/graph/`: `NetworkXGraphStore` (implements `GraphStore`) with typed nodes (load_balancer, ecs_service, lambda_function, ec2_instance, rds_instance, sqs_queue, security_group, iam_role, ...) and typed edges (routes_to, connects_to, secured_by, assumes_role, sends_to, polls); `upstream`/`downstream`/`path` on structural edges, `blast_radius`/`impact_path`/`impact_sources` on the derived impact graph (D49); `build_graph()` from `ResourceRecord`/`RelationshipRecord`, which both real inventory discovery and the offline dataset produce.
+- `app/correlation/`: investigation windows (5/15/30/60 min before the alarm + 10 min after), event classification and redundancy groups, onset estimation and temporal proximity ranking (D54), signals -> time-ordered links over the impact graph -> event chains -> **candidate causes** (temporal precedence + dependency path; labelled "candidate cause", never "causal") (D52).
+- `app/evidence/`: `EvidenceRanker` implementing the Section 2 score (five components in [0,1], configurable weights and K, event-type priors for events without a numeric anomaly, per-group cap keeping first occurrences, D51), local lexical semantic scorer (D53), stable evidence ids `evd_<sha256(incident|event)>` (D56), recency baseline (A5), and `InvestigationPipeline` (anomalies -> onset -> window -> chains -> ranking) with ablation switches `use_graph` / `use_anomalies` / `use_chains`.
+- Contracts: `app/contracts/correlation.py` (`Signal`, `InvestigationWindow`, `EventChain`, `CandidateCause`, `CorrelationResult`), `EvidenceRanking` and `make_evidence_id` (D56). Existing contracts unchanged.
+- Config: `evidence` section extended and new `correlation` section in `config/default.yaml`; defaults chosen on dev only (D55).
+- `app/evaluation/evidence_eval.py`: CLI for evidence precision/recall@K, window x K grid, ablations, by-category table, candidate-cause hit@n and red-herring counts, optional dev-only weight grid (`--tune`). Refuses the test split without `--final`; `--tune` is dev-only.
+
+Gate status:
+- [x] Evidence precision/recall@K against ground-truth evidence on dev, labelled **smoke-test / synthetic** (86 incidents, 82 with ground-truth evidence), for K in {5, 10, 20, 40} and windows {5, 15, 30, 60}, plus ablations.
+- [x] Chain-detection tests including red-herring cases: unit tests (unrelated deployment at the onset, change after the alarm, change beyond the link gap, multi-hop SG -> RDS -> ECS -> ALB chain, SQS `polls` chain, no-graph mode, determinism) and a dataset test over every dev red-herring case at all four windows (no red-herring event is ever a candidate cause or in a chain).
+- [x] `pytest` 176 passed (25 new); `ruff check` and `ruff format --check` clean.
+
+Results summary (dev split, smoke-test / synthetic, **in-sample**: the settings were tuned on this split):
+
+| configuration (W = 30 min, K = 10) | precision@10 | recall@10 | red-herring rate |
+|---|---|---|---|
+| Full | 0.406 | 0.601 | 0.0 |
+| A2 no dependency graph | 0.356 | 0.525 | 0.5 |
+| A3 no anomaly detection | 0.187 | 0.263 | 0.0 |
+| A4 temporal weight 0 | 0.404 | 0.599 | 0.0 |
+| A5 recency (no ranking) | 0.009 | 0.014 | 0.0 |
+
+- Recall@K for Full at W = 30: 0.28 (K=5), 0.60 (10), 0.78 (20), 0.82 (40). Ground truth averages 7.1 items per incident, so precision@10 cannot exceed about 0.71.
+- W = 5 misses 27% of ground-truth evidence (window coverage 0.73); 15, 30 and 60 min perform the same.
+- Candidate causes (W >= 15): the true primary resource is the first candidate in 61% of cases and in the top 3 in 92%; zero red-herring candidate causes or chain events across the 8 dev red-herring cases.
+- Anomaly detection is the strongest single signal; the graph mainly removes red herrings and unrelated resources (A2 lets red herrings into the top-10 in half the red-herring cases); temporal adds almost nothing once the anomaly component is centred on the onset; the alarmed-resource `resource` component hurts on this dataset and has weight 0 (D55).
+
+Known limits:
+- All numbers are synthetic and in-sample (D55); the test split has not been touched.
+- Every red herring in the dataset sits on a resource with no dependency path. A red herring on a connected resource (e.g. an unrelated change on the same RDS instance) can only be demoted by timing, not excluded; no dataset case covers it.
+- Ground truth lists only first occurrences of key signals, so correct but unlisted items count as false positives (precision is a lower bound).
+- The semantic component is lexical (TF-IDF + failure terms) until Phase 5 embedders exist.
+- Onset estimates on 300 s data are quantised to 5 minutes (dev mean absolute error 3.3 min vs 6.4 min for the alarm time).
+- Evidence, chains and the graph are not yet persisted to the `evidence` / `resource_relationships` tables (API/DB wiring is Phase 8).
+
+## Next: Phase 5 (redaction, embeddings, historical RAG)
+Configurable redaction with consistent pseudonyms before any external LLM call; embedder abstraction; vector store (pgvector, FAISS fallback) with model metadata; historical knowledge base from a corpus separate from the test set; retrieval + re-ranking. Gate: retrieval tests, leakage test, redaction tests. An embedding-based `SemanticScorer` can then replace the lexical one in evidence ranking (re-check D55 on dev if it does).
 
 ## Team hand-off
 Setup, commands and working rules are in `README.md` and `CONTRIBUTING.md`. CI runs ruff (lint + format check) and pytest on every PR. Branch naming: `phaseN/<topic>`.
