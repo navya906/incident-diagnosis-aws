@@ -16,7 +16,6 @@ import os
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
-DEFAULT_KEY = "demo-key-change-me"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -31,7 +30,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.fresh and args.db.exists():
         args.db.unlink()
     url = f"sqlite+pysqlite:///{args.db.resolve().as_posix()}"
-    key = os.environ.get("CLOUDDIAG_DEMO_KEY", DEFAULT_KEY)
+    from app.api.security import DEMO_KEY
+
+    key = os.environ.get("CLOUDDIAG_DEMO_KEY", DEMO_KEY)
     os.environ["CLOUDDIAG_DATABASE_URL"] = url
     os.environ["CLOUDDIAG_DATA_MODE"] = "offline"
     os.environ["CLOUDDIAG_LLM__PROVIDER"] = "stub"

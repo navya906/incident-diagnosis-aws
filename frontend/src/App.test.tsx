@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
+import { api, RATE_LIMIT_RETRIES } from "./api/client";
 import { DiagnosisPanel } from "./components/DiagnosisPanel";
 import { diagnosisRecord, incident } from "./test/fixtures";
 
@@ -61,6 +62,33 @@ describe("App", () => {
       </MemoryRouter>,
     );
     expect((await screen.findAllByRole("alert"))[0]).toHaveTextContent("missing or invalid API key");
+  });
+});
+
+describe("API client", () => {
+  it("waits for Retry-After and retries when rate limited, then gives up with the error", async () => {
+    vi.useFakeTimers();
+    try {
+      sessionStorage.setItem("clouddiag.apiKey", "k");
+      let n = 0;
+      const limited = () =>
+        new Response(JSON.stringify({ detail: "rate limit exceeded" }), { status: 429, headers: { "Retry-After": "2" } });
+      const calls = mockFetch(() => (++n <= 2 ? limited() : { items: [], total: 0 }));
+      const pending = api.incidents();
+      await vi.advanceTimersByTimeAsync(1999);
+      expect(calls).toHaveLength(1); // still waiting for Retry-After
+      await vi.advanceTimersByTimeAsync(2001 + 2000);
+      await expect(pending).resolves.toEqual({ items: [], total: 0 });
+      expect(calls).toHaveLength(3);
+
+      const always = mockFetch(() => limited());
+      const failing = api.incidents().catch((e: Error) => e);
+      await vi.advanceTimersByTimeAsync(2000 * (RATE_LIMIT_RETRIES + 1));
+      expect(((await failing) as Error).message).toBe("rate limit exceeded");
+      expect(always).toHaveLength(RATE_LIMIT_RETRIES + 1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

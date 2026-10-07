@@ -5,6 +5,7 @@
 - Dataset: `synthetic-v1`, content sha256 `06cec245b951be8e9b08524367439b5ee3d37fa75d6551d3bb8e2922d8388f8b`
 - Prompt: `diag-v1` (sha `9df947fcdc3580a0`); context budget 6000 tokens; embedder `hashing-v1-384`; 3 self-consistency samples (Full only)
 - Command: `python -m app.evaluation.diagnosis_e2e`
+- Report id: `rpt-136edb46e231` (content hash of the .json results; `python -m app.evaluation.provenance check`)
 
 ## Conditions
 

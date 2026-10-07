@@ -41,6 +41,8 @@ from app.rag.embedders import HashingEmbedder
 from app.rag.knowledge_base import HistoricalRetriever, KnowledgeBase, LeakageError, build_query
 from app.rag.vector_store import LocalVectorStore
 
+pytestmark = pytest.mark.integration
+
 REPO = Path(__file__).resolve().parents[2]
 SMOKE = REPO / "experiments" / "smoke-dev.yaml"
 
@@ -278,6 +280,30 @@ def test_gate_reproducible_by_experiment_id(small_run, dataset):
     report = verify(run.experiment_id, out, dataset, corpus)
     assert report["reproduced"], report
     assert report["rerun_results_sha256"] == run.manifest["results_sha256"]
+
+
+def test_verify_separates_code_changes_from_result_changes(small_run, dataset, monkeypatch):
+    # D107: a changed source hash changes the id but not the results hash.
+    from app.experiments import runner as runner_mod
+
+    run, out, corpus = small_run
+    renamed = [{**r, "experiment_id": "exp-000000000000"} for r in run.records]
+    assert runner_mod.results_hash(renamed) == run.manifest["results_sha256"]
+    legacy = runner_mod.results_hash(run.records, legacy_id=run.experiment_id)
+    assert legacy != run.manifest["results_sha256"]
+    monkeypatch.setattr(runner_mod, "source_hash", lambda: "changed-source")
+    report = verify(run.experiment_id, out, dataset, corpus)
+    assert report["reproduced"] and report["source_changed"] and report["notes"]
+    manifest_path = out / run.experiment_id / "manifest.json"
+    original = manifest_path.read_text(encoding="utf-8")
+    m = json.loads(original)
+    m["results_sha256"] = "0" * 64
+    manifest_path.write_text(json.dumps(m), encoding="utf-8")
+    try:
+        report = verify(run.experiment_id, out, dataset, corpus)
+    finally:
+        manifest_path.write_text(original, encoding="utf-8")
+    assert not report["reproduced"] and report["problems"] == ["results differ"]
 
 
 def test_experiment_id_changes_with_inputs(dataset, tmp_path):

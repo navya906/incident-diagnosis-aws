@@ -1,0 +1,22 @@
+# Build context is the repository root (backend image) or frontend/ (frontend image).
+# Keep local environments, generated data, caches and secrets out of every image.
+**/.venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.pytest_tmp
+**/.ruff_cache
+**/*.egg-info
+**/node_modules
+**/dist
+**/test-results
+**/playwright-report
+**/*.tsbuildinfo
+.git
+.github
+.env
+.env.*
+!.env.example
+.fault-state
+data
+docs/experiments/runs/*/results.jsonl

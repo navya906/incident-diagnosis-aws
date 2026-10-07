@@ -49,12 +49,25 @@ function describe(detail: unknown): string {
   return "request failed";
 }
 
+/** Retries after HTTP 429 (rate limit), waiting as long as the server's Retry-After says. */
+export const RATE_LIMIT_RETRIES = 3;
+const MAX_RETRY_WAIT_MS = 10_000;
+
+function retryDelayMs(res: Response): number {
+  const seconds = Number(res.headers.get("Retry-After"));
+  return Math.min(Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : 1000, MAX_RETRY_WAIT_MS);
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   const key = apiKey.get();
   if (key) headers.set("X-API-Key", key);
   if (init.body) headers.set("Content-Type", "application/json");
-  const res = await fetch(path, { ...init, headers });
+  let res = await fetch(path, { ...init, headers });
+  for (let attempt = 0; res.status === 429 && attempt < RATE_LIMIT_RETRIES; attempt++) {
+    await new Promise((resolve) => setTimeout(resolve, retryDelayMs(res)));
+    res = await fetch(path, { ...init, headers });
+  }
   if (!res.ok) {
     let detail: unknown = res.statusText;
     try {

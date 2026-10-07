@@ -4,7 +4,8 @@ Experiment id = "exp-" + first 12 hex of sha256 over: the config (canonical JSON
 content hash, the historical-corpus content hash, the prompt hash, the configured model, and a
 hash of the application source (`backend/app/**/*.py`). Same id => same inputs and code; with a
 deterministic model (the stub) the results are byte-identical, which `verify` checks by re-running
-and comparing `results_sha256` (DECISIONS D82).
+and comparing `results_sha256` (DECISIONS D82). The results hash leaves out each record's own
+experiment id, so `verify` can confirm stored results under later code (D107).
 
 Output directory `docs/experiments/runs/<id>/`:
   manifest.json        id, label, split, timestamp, model + provider-reported versions, prompt
@@ -727,11 +728,22 @@ def plan(
     }
 
 
-def results_hash(records: list[dict]) -> str:
+def results_hash(records: list[dict], legacy_id: str | None = None) -> str:
+    """Hash of the results without volatile fields and without each record's experiment id.
+
+    The id contains the source hash, so hashing it would make any code change look like a
+    change in results (D107). `legacy_id` reproduces the hash of manifests written before that
+    fix, which stored each record's id inside the hash.
+    """
+
     def strip(r):
         r = json.loads(_canonical(r))
         for k in VOLATILE:
             r["metrics"].pop(k, None)
+        if legacy_id is None:
+            r.pop("experiment_id", None)
+        else:
+            r["experiment_id"] = legacy_id
         return r
 
     body = "\n".join(_canonical(strip(r)) for r in records)
@@ -881,21 +893,28 @@ def verify(
     manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
     config = ExperimentConfig.model_validate(manifest["config"])
     runner = ExperimentRunner(config, dataset, corpus_dir, out_root, base_settings)
-    problems = []
-    if source_hash() != manifest["source_sha"]:
-        problems.append("application source changed since the experiment was run")
+    notes = []
+    source_changed = source_hash() != manifest["source_sha"]
+    if source_changed:
+        notes.append("application source changed since the experiment was run")
     rerun = runner.run(final=config.split == "test", write=False)
     if rerun.experiment_id != manifest["experiment_id"]:
-        problems.append(f"inputs give experiment id {rerun.experiment_id}")
-    same = rerun.manifest["results_sha256"] == manifest["results_sha256"]
-    if not same:
-        problems.append("results differ")
+        notes.append(f"current code and inputs give experiment id {rerun.experiment_id}")
+    stored = manifest["results_sha256"]
+    rerun_sha = rerun.manifest["results_sha256"]
+    same = rerun_sha == stored or (
+        results_hash(rerun.records, legacy_id=manifest["experiment_id"]) == stored
+    )
+    # Reproduced = the same results; a changed source hash alone is reported, not a failure,
+    # so that the stored numbers can be re-checked against later code (D107).
     return {
         "experiment_id": manifest["experiment_id"],
-        "reproduced": same and not problems,
-        "problems": problems,
-        "stored_results_sha256": manifest["results_sha256"],
-        "rerun_results_sha256": rerun.manifest["results_sha256"],
+        "reproduced": same,
+        "source_changed": source_changed,
+        "problems": [] if same else ["results differ"],
+        "notes": notes,
+        "stored_results_sha256": stored,
+        "rerun_results_sha256": rerun_sha,
         "records": len(rerun.records),
     }
 

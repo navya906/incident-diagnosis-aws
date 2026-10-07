@@ -29,6 +29,7 @@ from app.anomaly.detectors import METHODS, build_detector
 from app.anomaly.series import series_from_events
 from app.config import AnomalySettings, get_settings
 from app.contracts.anomaly import MetricSeries
+from app.evaluation.provenance import stamp, with_report_id
 from app.interfaces.detector import Detector
 from app.offline.dataset import DEFAULT_SEED, DatasetLoader, generate_dataset
 from app.offline.models import AnomalyLabel
@@ -254,6 +255,9 @@ def run(
         "- Delay is quantised by the metric period (1 or 5 minutes).",
         "",
     ]
+    payload = {"meta": meta, "all": main_rows, "by_resolution": res_rows, "sweep": sweep_rows}
+    payload = stamp(payload)
+    md = with_report_id(md, payload["report_id"])
     (out_dir / f"{stem}.md").write_text("\n".join(md), encoding="utf-8", newline="\n")
     with open(out_dir / f"{stem}.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=["table", "method", "resolution", "threshold", *cols[1:]])
@@ -261,7 +265,6 @@ def run(
         for table, rows in (("all", main_rows), ("resolution", res_rows), ("sweep", sweep_rows)):
             for r in rows:
                 w.writerow({"table": table, **r})
-    payload = {"meta": meta, "all": main_rows, "by_resolution": res_rows, "sweep": sweep_rows}
     (out_dir / f"{stem}.json").write_text(
         json.dumps(payload, indent=2, default=str) + "\n", encoding="utf-8", newline="\n"
     )

@@ -4,6 +4,7 @@
 
 - Dataset: `synthetic-v1` (sha `06cec245b951be8e9b08524367439b5ee3d37fa75d6551d3bb8e2922d8388f8b`)
 - Command: `python -m app.evaluation.verifier_audit`
+- Report id: `rpt-fa410c0154c9` (content hash of the .json results; `python -m app.evaluation.provenance check`)
 - Clean answers: 86; false positives (a clean answer rejected or flagged): 0 (rate 0.0)
 
 detected = rejected by the validator, or counted as an unsupported citation in the hallucination rate. strict = rejected with `reject_unsupported_claims: true`.

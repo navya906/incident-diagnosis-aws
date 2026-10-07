@@ -25,6 +25,8 @@ from app.db.session import make_session_factory
 from app.main import create_app
 from app.offline.dataset import DatasetLoader, generate_dataset
 
+pytestmark = pytest.mark.integration
+
 KEY = "test-key-0123456789abcdef"
 OTHER_KEY = "second-key-zyxwvu987654"
 H = {"X-API-Key": KEY}
@@ -700,6 +702,27 @@ def test_fail_closed_without_keys_and_in_aws_mode(dataset, tmp_path):
     )
     with pytest.raises(AuthConfigError):
         create_app(settings, create_engine("sqlite://"))
+
+
+@pytest.mark.parametrize(
+    ("keys", "update", "message"),
+    [
+        (["demo-key-change-me"], {"environment": "production"}, "demo key"),
+        (["short-key"], {"environment": "production"}, "at least 16"),
+        (["demo-key-change-me"], {"data_mode": "aws"}, "demo key"),
+        ([], {"environment": "production", "auth_disabled": True}, "not allowed in production"),
+    ],
+)
+def test_production_refuses_weak_auth(dataset, tmp_path, keys, update, message):
+    # D108: the quickstart's documented key works only in development.
+    auth_disabled = update.pop("auth_disabled", False)
+    settings = make_settings(
+        dataset, tmp_path, api_keys=keys, auth_disabled=auth_disabled
+    ).model_copy(update=update)
+    with pytest.raises(AuthConfigError, match=message):
+        create_app(settings, create_engine("sqlite://"))
+    dev = make_settings(dataset, tmp_path / "dev", api_keys=keys or [KEY])
+    create_app(dev, create_engine("sqlite://"))  # development accepts the same keys
 
 
 def test_rate_limit_per_client(dataset, tmp_path):

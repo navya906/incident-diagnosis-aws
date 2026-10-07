@@ -1,38 +1,24 @@
 import { expect, test, type Page } from "@playwright/test";
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import { E2E_KEY } from "../playwright.config";
+import { firstFree, manifest, shot as save, tab } from "./helpers";
 
 // One scripted walk-through of the whole UI on an offline incident (smoke-test / synthetic).
 // The dataset manifest is read only to pick a representative "standard" incident with
 // CloudTrail activity; nothing about the expected diagnosis is asserted from ground truth.
-function pickIncident(): string {
-  const manifest = JSON.parse(
-    fs.readFileSync(
-      path.resolve(__dirname, "..", "..", "data", "generated", "synthetic-v1", "manifest.json"),
-      "utf-8",
-    ),
-  ) as { entries: { incident_id: string; split: string; category: string; fault_type: string; topology: string }[] };
-  const e = manifest.entries.find(
-    (x) => x.split === "dev" && x.category === "standard" && x.fault_type === "deployment_failure" && x.topology === "ecs",
-  );
-  if (!e) throw new Error("no suitable dev incident in the dataset");
-  return e.incident_id;
+function candidates(): string[] {
+  const ids = manifest()
+    .filter((x) => x.split === "dev" && x.category === "standard" && x.fault_type === "deployment_failure" && x.topology === "ecs")
+    .map((x) => x.incident_id);
+  if (!ids.length) throw new Error("no suitable dev incident in the dataset");
+  return ids;
 }
 
 async function shot(page: Page, name: string) {
-  await page.screenshot({ path: `test-results/walkthrough/${name}.png`, fullPage: true });
+  await save(page, "walkthrough", name);
 }
 
-async function tab(page: Page, name: string) {
-  await page.getByRole("navigation", { name: "incident sections" }).getByRole("link", { name }).click();
-}
-
-test("walk-through: import, diagnose, inspect every view, resolve and close", async ({ page }) => {
-  const incidentId = pickIncident();
+test("walk-through: import, diagnose, inspect every view, resolve and close", async ({ page, request }) => {
+  const incidentId = await firstFree(request, candidates());
 
   // 1. Connect with the API key (kept in sessionStorage only).
   await page.goto("/");
@@ -40,7 +26,7 @@ test("walk-through: import, diagnose, inspect every view, resolve and close", as
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(page.getByText("Import an offline incident")).toBeVisible();
   expect(await page.evaluate(() => localStorage.length)).toBe(0);
-  await shot(page, "01-incidents-empty");
+  await shot(page, "01-incidents");
 
   // 2. Import an offline incident.
   await page.getByLabel("offline incident").selectOption(incidentId);

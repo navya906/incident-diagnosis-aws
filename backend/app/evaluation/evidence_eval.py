@@ -33,6 +33,7 @@ from app.contracts.events import CanonicalEvent
 from app.contracts.evidence import ScoreWeights
 from app.correlation.events import event_kind
 from app.correlation.windows import STANDARD_WINDOWS, events_in_window, investigation_window
+from app.evaluation.provenance import stamp, with_report_id
 from app.evidence.pipeline import InvestigationPipeline, incident_onset
 from app.evidence.ranker import ScoredEvent, rank_by_recency
 from app.graph.builder import build_graph
@@ -403,6 +404,8 @@ def _write(out_dir: Path, split: str, payload: dict, tune: bool) -> None:
     ]
     out_dir.mkdir(parents=True, exist_ok=True)
     stem = f"phase4-evidence-ranking-{split}"
+    payload = stamp(payload)
+    md = with_report_id(md, payload["report_id"])
     (out_dir / f"{stem}.md").write_text("\n".join(md), encoding="utf-8", newline="\n")
     with open(out_dir / f"{stem}.csv", "w", newline="", encoding="utf-8") as f:
         fields = ["table", "category", *cols, "incidents", "mean_gt_items"]

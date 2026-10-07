@@ -26,6 +26,7 @@ import statistics
 from pathlib import Path
 
 from app.config import Settings, get_settings
+from app.evaluation.provenance import stamp, with_report_id
 from app.evidence.pipeline import InvestigationPipeline
 from app.offline.dataset import DEFAULT_SEED, DatasetLoader, generate_dataset
 from app.offline.replay import ReplayCollector
@@ -220,6 +221,8 @@ def _write(out_dir: Path, payload: dict) -> None:
     ]
     out_dir.mkdir(parents=True, exist_ok=True)
     stem = "phase5-retrieval-dev"
+    payload = stamp(payload)
+    md = with_report_id(md, payload["report_id"])
     (out_dir / f"{stem}.md").write_text("\n".join(md), encoding="utf-8", newline="\n")
     with open(out_dir / f"{stem}.csv", "w", newline="", encoding="utf-8") as f:
         wr = csv.DictWriter(f, fieldnames=cols)

@@ -5,7 +5,40 @@ telemetry, reasoning over AWS dependencies, retrieving similar past incidents, a
 structured, evidence-cited root-cause diagnosis, then measuring honestly whether each component helps.
 
 > Read `BRIEF.md` (the spec), `PROGRESS.md` (where we are) and `DECISIONS.md` (why things are the way
-> they are) **before** you touch anything. Current status: **Phases 0 to 9 done**, gates passed.
+> they are) **before** you touch anything. Current status: **Phases 0 to 10 done**, gates passed.
+> Every result in this repository is **smoke-test / synthetic** (simulator data, deterministic stub
+> LLM); read [docs/known-limitations.md](docs/known-limitations.md) before using any number.
+
+## Quickstart (offline, no AWS credentials, no LLM key)
+
+```bash
+git clone https://github.com/navya906/incident-diagnosis-aws.git
+cd incident-diagnosis-aws
+docker compose up --build
+```
+
+Open http://localhost:3000, enter the API key `demo-key-change-me`, import an offline incident and
+press **Run diagnosis** on its Diagnosis tab. `python scripts/quickstart_check.py` checks the same
+flow from a terminal. Production setup, configuration and operations:
+[docs/deployment.md](docs/deployment.md).
+
+## Documentation
+
+| Document | Contents |
+|---|---|
+| [docs/architecture.md](docs/architecture.md) | components, data flow, one diagnosis step by step |
+| [docs/ai-architecture.md](docs/ai-architecture.md) | LLM use, prompt, redaction, retrieval, validation, confidence, severity |
+| [docs/evaluation.md](docs/evaluation.md) | evaluation and experiment methodology, results with experiment and report ids |
+| [docs/api.md](docs/api.md) | REST API, authentication, lifecycle, alarm webhook |
+| [docs/db-schema.md](docs/db-schema.md) | tables, columns, migrations |
+| [docs/aws-setup.md](docs/aws-setup.md) | read-only IAM, capturing real incidents |
+| [docs/security.md](docs/security.md) | threats, controls, residual risks |
+| [docs/deployment.md](docs/deployment.md) | quickstart, production compose, configuration, operations |
+| [docs/testing.md](docs/testing.md) | test categories and counts, end-to-end tests, CI |
+| [docs/known-limitations.md](docs/known-limitations.md) | what the results and the system cannot show or do |
+| [docs/future-work.md](docs/future-work.md) | next steps, in order of importance |
+| [docs/offline-dataset.md](docs/offline-dataset.md) | the synthetic dataset |
+| [docs/experiments/RUNBOOK.md](docs/experiments/RUNBOOK.md) | real-LLM experiment commands |
 
 ## 1. Requirements
 
@@ -13,7 +46,7 @@ structured, evidence-cited root-cause diagnosis, then measuring honestly whether
 |---|---|---|
 | Python | 3.11 or newer (3.12 works) | backend, tests |
 | Git | any recent | version control |
-| Docker Desktop + Compose v2 | any recent | running api + Postgres/pgvector (Phase 0 gate, Phase 10 demo) |
+| Docker Desktop + Compose v2.24+ | any recent | the full stack (quickstart, production) |
 | Node.js | 20+ | frontend, from Phase 9 only |
 | AWS account / credentials | optional | only for real collectors (Phase 2) and real test stacks; **not needed** for offline mode |
 | LLM API key (OpenAI-compatible or Gemini) | optional | only for real-LLM experiments; everything else runs on the deterministic stub |
@@ -56,7 +89,7 @@ Run from `backend/` with the venv active.
 
 | Task | Command |
 |---|---|
-| Run tests | `pytest -q` |
+| Run tests | `pytest -q` (prints counts per category; `-m unit`, `-m integration`, `-m e2e` select one, see `docs/testing.md`) |
 | Lint | `ruff check .` |
 | Auto-fix lint/imports | `ruff check . --fix` |
 | Format code | `ruff format .` (CI runs `ruff format --check .`) |
@@ -69,6 +102,7 @@ Run from `backend/` with the venv active.
 | End-to-end diagnosis smoke run (dev, stub LLM) | `python -m app.evaluation.diagnosis_e2e` (writes `docs/experiments/`) |
 | Run an experiment (condition matrix) | `python -m app.experiments run --config ../experiments/smoke-dev.yaml` (test split: `--split test --final`; real LLMs: `docs/experiments/RUNBOOK.md`) |
 | Reproduce / list experiments | `python -m app.experiments verify <experiment id>`, `python -m app.experiments list` |
+| Check component report ids | `python -m app.evaluation.provenance check` (`list` prints them) |
 | Plan calls and cost before a run | `python -m app.experiments plan --config ../experiments/real-test-openai.yaml` |
 | Run the API locally | `CLOUDDIAG_API__API_KEYS='["dev-key-change-me"]' uvicorn app.main:app --reload` then `curl -H 'X-API-Key: dev-key-change-me' localhost:8000/api/incidents` (reference: `docs/api.md`) |
 | Demo backend (offline data, stub LLM, SQLite) | `python -m app.demo` (key: `CLOUDDIAG_DEMO_KEY`, default `demo-key-change-me`) |
@@ -88,9 +122,11 @@ alembic upgrade head && uvicorn app.main:app --reload
 
 Full stack with Docker (from repo root):
 ```bash
-docker compose up --build
-curl http://localhost:8000/health      # {"status":"ok","database":"ok",...}
+docker compose up --build              # offline quickstart: http://localhost:3000, key demo-key-change-me
+python scripts/quickstart_check.py     # end-to-end check of the running stack
 ```
+Production: `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build`
+with real secrets (`docs/deployment.md`).
 
 ## 4. Configuration
 
@@ -104,8 +140,9 @@ Secrets (API keys) come from the environment only.
 ```
 BRIEF.md  PROGRESS.md  DECISIONS.md   spec, status, decision log (keep in sync)
 config/default.yaml                    default settings
-docker-compose.yml                     api + pgvector Postgres + frontend placeholder
-scripts/                               setup helpers
+docker-compose.yml                     offline quickstart: api + pgvector Postgres + frontend (nginx)
+docker-compose.prod.yml                production override (secrets required, hardened containers)
+scripts/                               setup helpers, quickstart_check.py (end-to-end check of a stack)
 backend/
   pyproject.toml  alembic/  tests/
   app/
@@ -140,7 +177,8 @@ backend/
 frontend/                              React + Vite + TypeScript UI (Phase 9): src/pages,
                                        src/components, src/lib (evidence rule), e2e/
 infra/                                 real test stack, fault injection, read-only IAM policy
-docs/                                  dataset and AWS docs; docs/experiments/ holds generated results
+docs/                                  documentation (table above); docs/experiments/ holds generated
+                                       results: component reports (rpt- ids) and runs/ (exp- ids)
 experiments/                           YAML experiment configs (smoke, dev pilot, final test runs)
 ```
 

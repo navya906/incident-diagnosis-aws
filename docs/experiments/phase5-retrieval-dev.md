@@ -7,6 +7,7 @@
 - Embedder: `hashing-v1-384` (dimension 384)
 - Re-ranking weights: similarity 0.7, signals 0.2, context 0.1; 20 candidates
 - Command: `python -m app.evaluation.retrieval_eval --embedder hashing`
+- Report id: `rpt-6dc7127fdb57` (content hash of the .json results; `python -m app.evaluation.provenance check`)
 
 label@1: the top past incident has the query's primary taxonomy label. label@3: one of the top 3 does. MRR@10: mean reciprocal rank of the first same-label incident. Majority-label rate in the corpus (what always guessing one label would score): 0.1.
 

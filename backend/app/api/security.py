@@ -34,8 +34,19 @@ def key_id(key: str) -> str:
     return "key-" + hashlib.sha256(key.encode()).hexdigest()[:12]
 
 
+#: The documented key of the offline demo and the quickstart (D100, D108). Accepted only in
+#: development; production and aws mode refuse it.
+DEMO_KEY = "demo-key-change-me"
+#: Shortest key accepted in production and aws mode.
+MIN_PRODUCTION_KEY_LENGTH = 16
+
+
 class AuthConfigError(RuntimeError):
     """Unsafe authentication configuration (e.g. auth disabled in aws mode)."""
+
+
+def _strict(settings: Settings) -> bool:
+    return settings.data_mode == "aws" or settings.environment.lower() == "production"
 
 
 class ApiKeyAuth:
@@ -43,7 +54,15 @@ class ApiKeyAuth:
         self.disabled = settings.api.auth_disabled
         if self.disabled and settings.data_mode == "aws":
             raise AuthConfigError("api.auth_disabled is not allowed in aws mode")
+        if self.disabled and _strict(settings):
+            raise AuthConfigError("api.auth_disabled is not allowed in production")
         self._keys = [k.get_secret_value() for k in settings.api.api_keys if k.get_secret_value()]
+        if _strict(settings):
+            if DEMO_KEY in self._keys:
+                raise AuthConfigError("the documented demo key is not allowed in production")
+            if any(len(k) < MIN_PRODUCTION_KEY_LENGTH for k in self._keys):
+                n = MIN_PRODUCTION_KEY_LENGTH
+                raise AuthConfigError(f"API keys must be at least {n} characters in production")
         for k in self._keys:
             register_secret(k)
 

@@ -1,0 +1,10 @@
+You grade an incident diagnosis against the reference. Score 0-4, one point each:
+1. The root cause names the same failure mechanism as the reference (wording may differ).
+2. The root cause names the right resource.
+3. The recommendations would resolve the incident per the reference resolution.
+4. Nothing important is invented (claims are supported by the cited evidence).
+Reference root cause: {reference}
+Reference resolution: {resolution}
+Diagnosis root cause: {diagnosis}
+Diagnosis recommendations: {recommendations}
+Answer with JSON: {{"score": 0-4, "reason": "..."}}
