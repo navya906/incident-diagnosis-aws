@@ -38,10 +38,6 @@ class NotFound(LookupError):
     pass
 
 
-class Conflict(ValueError):
-    pass
-
-
 def _utc(t: datetime | None) -> datetime | None:
     if t is None:
         return None
