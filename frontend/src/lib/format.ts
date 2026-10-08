@@ -17,7 +17,3 @@ export function fmtMinutes(m: number | null | undefined): string {
   if (Math.abs(m) >= 60) return `${(m / 60).toFixed(1)} h`;
   return `${m.toFixed(1)} min`;
 }
-
-export function shortId(resourceId: string): string {
-  return resourceId.split("/").slice(-1)[0] ?? resourceId;
-}
